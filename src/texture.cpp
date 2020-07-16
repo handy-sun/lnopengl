@@ -1,11 +1,10 @@
 ﻿#include <iostream>
 #include "package/GLManager.h"
-#include "glad/glad.h"
+#include "glad.h"
 #include "glfw3.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "include/stb_image.h"
-
 
 void framebuffer_size_callback(GLFWwindow *, int width, int height)
 {
@@ -37,22 +36,35 @@ int main()
 
     GLManager gm;
 
-    float vertices[] = {
-        // first triangle
-        -0.9f, -0.5f, 0.0f,  // left
-        -0.0f, -0.5f, 0.0f,  // right
-        -0.45f, 0.5f, 0.0f,  // top
-        // second triangle
-         0.0f, -0.5f, 0.0f,  // left
-         0.9f, -0.5f, 0.0f,  // right
-         0.45f, 0.5f, 0.0f   // top
+    float vertices[] =
+    {
+        0.5f, 0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f
+    };
+    unsigned int indices[] =
+    {
+        0, 1, 3, // 第一个三角形
+        1, 2, 3  // 第二个三角形
+    };
+    float texCoords[] =
+    {
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f
     };
 
-//    int width, height, nrChannels;
-//    unsigned char *data = stbi_load("qtqt.jpg", &width, &height, &nrChannels, 0);
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load("../shaders/qtqt.jpg", &width, &height, &nrChannels, 0);
+    std::cerr << (int)data[0] << std::endl;
 
-    gm.readShaderFile("../shaders/tri.vert", "../shaders/tri.frag");
+    gm.readShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag");
     gm.setVertexArray(vertices, sizeof(vertices), 0, 3);
+    gm.genIndexArray(indices, sizeof(indices));
+    gm.genImageData(data, width, height);
+    gm.setTextureArray(texCoords, sizeof(texCoords), 1, 2);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -68,6 +80,6 @@ int main()
         glfwPollEvents();
     }
     glfwTerminate();
-
+    stbi_image_free(data);
     return 0;
 }

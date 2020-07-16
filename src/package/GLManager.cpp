@@ -21,6 +21,7 @@ GLManager::~GLManager()
     glDeleteVertexArrays(1, &m_vao);
     glDeleteBuffers(1, &m_vbo);
     glDeleteProgram(m_programID);
+    glDeleteTextures(1, &m_texture);
 }
 
 bool GLManager::initializeGLFunctionPointers()
@@ -126,10 +127,41 @@ void GLManager::setVertexArray(float *vertices, int vertSize, int location, int 
     glEnableVertexAttribArray(location);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+///    glBindBuffer(GL_ARRAY_BUFFER, 0);
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
+///    glBindVertexArray(0);
+}
+
+void GLManager::setTextureArray(float *tex, int size, int location, int vertStep)
+{
+    glGenBuffers(1, &m_vboTexture);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vboTexture);
+    glBufferData(GL_ARRAY_BUFFER, size, tex, GL_STATIC_DRAW);
+    glBufferData(GL_TEXTURE_2D, size, tex, GL_STATIC_DRAW);
+//    glVertexAttribPointer(location, vertStep, GL_FLOAT, GL_FALSE, vertStep * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(location);
+}
+
+void GLManager::genIndexArray(unsigned int *idx, int size)
+{
+    glGenBuffers(1, &m_ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, idx, GL_STATIC_DRAW);
+}
+
+void GLManager::genImageData(unsigned char *imageData, int width, int height)
+{
+    glGenTextures(1, &m_texture);
+    glBindTexture(GL_TEXTURE_2D, m_texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+    glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 void GLManager::paintTriangles(int firstIndex, int count)
@@ -138,6 +170,9 @@ void GLManager::paintTriangles(int firstIndex, int count)
         return;
 
     glUseProgram(m_programID);
+    glBindTexture(GL_TEXTURE_2D, m_texture);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vboTexture);
     glBindVertexArray(m_vao);
-    glDrawArrays(GL_TRIANGLES, firstIndex, count);
+    //glDrawArrays(GL_TRIANGLES, firstIndex, count);
+    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)firstIndex);
 }
