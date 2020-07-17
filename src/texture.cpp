@@ -11,13 +11,13 @@ void framebuffer_size_callback(GLFWwindow *, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-int main()
+int main(int argc, char **argv)
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow *window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(600, 600, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -33,8 +33,6 @@ int main()
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
-    GLManager gm;
 
     float vertices[] =
     {
@@ -55,15 +53,26 @@ int main()
         0.0f, 0.0f,
         0.0f, 1.0f
     };
+    for (int i = 0; i < 8; ++i)
+    {
+        texCoords[i] *= 2.0f;
+    }
+
+    GLManager gm;
 
     int width, height, nrChannels;
-    unsigned char *data = stbi_load("../shaders/qtqt.jpg", &width, &height, &nrChannels, 0);
-    std::cerr << (int)data[0] << std::endl;
+    unsigned char *data;
+    stbi_set_flip_vertically_on_load(true);
+
+    data = stbi_load("../shaders/container.jpg", &width, &height, &nrChannels, 0);
+    gm.genImageData(data, width, height, 0);
+    data = stbi_load("../shaders/llvm.png", &width, &height, &nrChannels, 0);
+    gm.genImageData(data, width, height, 1);
 
     gm.readShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag");
     gm.setVertexArray(vertices, sizeof(vertices), 0, 3);
     gm.genIndexArray(indices, sizeof(indices));
-    gm.genImageData(data, width, height);
+
     gm.setTextureArray(texCoords, sizeof(texCoords), 1, 2);
 
     while (!glfwWindowShouldClose(window))
@@ -74,7 +83,7 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        gm.paintTriangles(0, 6);
+        gm.paintTriangles(0, sizeof(indices) / sizeof(GLuint));
 
         glfwSwapBuffers(window);
         glfwPollEvents();
