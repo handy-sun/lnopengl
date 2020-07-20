@@ -7,6 +7,8 @@ public:
     GLManager();
     ~GLManager();
 
+    unsigned int programId() const { return m_programID; }
+
     bool initializeGLFunctionPointers();
     void readShaderFile(const char *vertexPath, const char *fragmentPath);
     void setVertexArray(float *vertices, int vertSize, int location, int vertStep);

@@ -14,7 +14,7 @@ else()
     set(EXE_NAME ${PROJECT_NAME})
 endif()
 
-include_directories(glad glew GLFW include)
+include_directories(glad glew GLFW glm include)
 link_directories(glew GLFW)
 
 set(COMMON_SRC

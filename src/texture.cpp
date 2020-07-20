@@ -3,6 +3,10 @@
 #include "glad.h"
 #include "glfw3.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "include/stb_image.h"
 
@@ -72,8 +76,12 @@ int main(int argc, char **argv)
     gm.readShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag");
     gm.setVertexArray(vertices, sizeof(vertices), 0, 3);
     gm.genIndexArray(indices, sizeof(indices));
-
     gm.setTextureArray(texCoords, sizeof(texCoords), 1, 2);
+
+//    glm::mat4 trans(1.0f);
+//    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+//    trans = glm::rotate(trans, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+//    trans = glm::scale(trans, glm::vec3(0.5f, 0.5f, 0.5f));
 
     while (!glfwWindowShouldClose(window))
     {
@@ -82,6 +90,16 @@ int main(int argc, char **argv)
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        float scaleFactor = sin(glfwGetTime()), ro = cos(glfwGetTime());
+
+        glm::mat4 trans(1.0f);
+        trans = glm::translate(trans, glm::vec3(scaleFactor, ro, 0.0f));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        trans = glm::scale(trans, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
+        GLuint trLoc = glGetUniformLocation(gm.programId(), "transform");
+
+        glUniformMatrix4fv(trLoc, 1, GL_FALSE, &trans[0][0]);
 
         gm.paintTriangles(0, sizeof(indices) / sizeof(GLuint));
 
