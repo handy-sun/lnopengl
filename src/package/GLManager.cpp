@@ -184,8 +184,8 @@ void GLManager::paintTriangles(int firstIndex, int count)
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 //    glBindVertexArray(m_vao);
-//    glDrawArrays(GL_TRIANGLES, firstIndex, count);
-    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)firstIndex);
+    glDrawArrays(GL_TRIANGLES, firstIndex, count);
+//    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)firstIndex);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
