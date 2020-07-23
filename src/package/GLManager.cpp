@@ -109,12 +109,10 @@ void GLManager::readShaderFile(const char *vertexPath, const char *fragmentPath)
 void GLManager::setVertexArray(float *vertices, int vertSize, int location, int vertStep)
 {
     glGenBuffers(1, &m_vbo);
-    glGenVertexArrays(1, &m_vao);
-
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER, vertSize, vertices, GL_STATIC_DRAW);
 
-    /* bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s). */
+    glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
     glVertexAttribPointer(location, vertStep, GL_FLOAT, GL_FALSE, vertStep * sizeof(float), (void*)0);
     glEnableVertexAttribArray(location);
@@ -169,9 +167,10 @@ void GLManager::paintTriangles(int firstIndex, int count)
     glUseProgram(m_programID);
 
     glUniform1i(glGetUniformLocation(m_programID, "sampTex1"), 0);
-    glUniform1i(glGetUniformLocation(m_programID, "sampTex2"), 1);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_texture);
+
+    glUniform1i(glGetUniformLocation(m_programID, "sampTex2"), 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_texture1);
 

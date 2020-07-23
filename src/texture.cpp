@@ -10,13 +10,17 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "include/stb_image.h"
 
-const unsigned int screenWidth = 800;
-const unsigned int screenHeight = 800;
+const unsigned int screenWidth = 600;
+const unsigned int screenHeight = 600;
+float cameraSpeed = 0.05f; // adjust accordingly
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float deltaTime = 0.0f; // 当前帧与上一帧的时间差
+float lastFrame = 0.0f; // 上一帧的时间
 
-void framebuffer_size_callback(GLFWwindow *, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow *window);
 
 int main(int argc, char **argv)
 {
@@ -80,7 +84,8 @@ int main(int argc, char **argv)
 //        0.0f, 1.0f,
 //    };
 
-    float vertices[] = {
+    float vertices[] =
+    {
         -0.5f, -0.5f, -0.5f,
         0.5f, -0.5f, -0.5f,
         0.5f,  0.5f, -0.5f,
@@ -123,7 +128,6 @@ int main(int argc, char **argv)
         -0.5f,  0.5f,  0.5f,
         -0.5f,  0.5f, -0.5f,
     };
-
     float texCoords[] = {
         0.0f, 0.0f,
         1.0f, 0.0f,
@@ -184,7 +188,7 @@ int main(int argc, char **argv)
 
     int width, height, nrChannels;
     unsigned char *data;
-    float angle = glm::radians(4.0f);
+    float radius = 15.0f;
     stbi_set_flip_vertically_on_load(true);
 
     data = stbi_load("../shaders/container.jpg", &width, &height, &nrChannels, 0);
@@ -197,37 +201,36 @@ int main(int argc, char **argv)
     //gm.genIndexArray(indices, sizeof(indices));
     gm.setTextureArray(texCoords, sizeof(texCoords), 1, 2);
 
-    glm::mat4 model, view, projection;
+    glm::mat4 model, view, projection, mvp;
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe Mode
 
     while (!glfwWindowShouldClose(window))
     {
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, true);
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+        cameraSpeed = 3.5f * deltaTime;
+        processInput(window);
 
         glEnable(GL_DEPTH_TEST);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        //model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-        view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+        //view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-        GLuint modelLoc = glGetUniformLocation(gm.programId(), "model");
-        GLuint viewLoc = glGetUniformLocation(gm.programId(), "view");
-        GLuint projectionLoc = glGetUniformLocation(gm.programId(), "projection");
+        //projection = glm::ortho(0.0f, 800.0f, 0.0f, (float)screenHeight, 0.1f, 100.0f);
 
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-
+        GLuint mvpLoc = glGetUniformLocation(gm.programId(), "modViewProj");
         for (int i = 0; i < 10; ++i)
         {
             model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
-            float _angle = 20.0f * i + 10.0f;
+            float _angle = 15.0f * (i + 1);
             model = glm::rotate(model, glm::radians(_angle) * (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            mvp = projection * view * model;
+
+            glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
             gm.paintTriangles(0, sizeof(indices) / sizeof(GLuint));
-//            glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
         glfwSwapBuffers(window);
@@ -236,4 +239,24 @@ int main(int argc, char **argv)
     glfwTerminate();
     stbi_image_free(data);
     return 0;
+}
+
+void framebuffer_size_callback(GLFWwindow *, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        cameraPos += cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        cameraPos -= cameraSpeed * cameraFront;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
