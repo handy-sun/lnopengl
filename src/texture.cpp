@@ -191,7 +191,7 @@ int main(int argc, char **argv)
     float radius = 15.0f;
     stbi_set_flip_vertically_on_load(true);
 
-    data = stbi_load("../shaders/container.jpg", &width, &height, &nrChannels, 0);
+    data = stbi_load("../shaders/luoying.jpg", &width, &height, &nrChannels, 0);
     gm.genImageData(data, width, height, 0);
     data = stbi_load("../shaders/llvm.png", &width, &height, &nrChannels, 0);
     gm.genImageData(data, width, height, 1);
