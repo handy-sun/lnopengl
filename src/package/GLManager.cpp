@@ -11,6 +11,13 @@
 #endif
 
 GLManager::GLManager()
+    : m_programID(0)
+    , m_vbo(0)
+    , m_vao(0)
+    , m_ebo(0)
+    , m_texture(0)
+    , m_texture1(0)
+    , m_vboTexture(0)
 {
 }
 
@@ -21,17 +28,6 @@ GLManager::~GLManager()
     glDeleteBuffers(1, &m_vboTexture);
     glDeleteProgram(m_programID);
     glDeleteTextures(1, &m_texture);
-}
-
-bool GLManager::initializeGLFunctionPointers()
-{
-#ifdef GLMANAGER_USE_GLEW
-    glewExperimental = GL_TRUE;
-    return m_isInitializeSuccess = glewInit() == GLEW_OK;
-#else
-//    return m_isInitializeSuccess == gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    return true;
-#endif
 }
 
 void GLManager::readShaderFile(const char *vertexPath, const char *fragmentPath)
@@ -147,7 +143,7 @@ void GLManager::genImageData(unsigned char *imageData, int width, int height, in
     {
         glGenTextures(1, &m_texture);
         glBindTexture(GL_TEXTURE_2D, m_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
     }
     else if (index == 1)
     {
@@ -183,8 +179,10 @@ void GLManager::paintTriangles(int firstIndex, int count)
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 //    glBindVertexArray(m_vao);
-    glDrawArrays(GL_TRIANGLES, firstIndex, count);
-//    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)firstIndex);
+    if (m_ebo != 0)
+        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)firstIndex);
+    else
+        glDrawArrays(GL_TRIANGLES, firstIndex, count);
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);

@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.2)
 
 project(LearnOpenGL)
 
@@ -14,8 +14,18 @@ else()
     set(EXE_NAME ${PROJECT_NAME})
 endif()
 
+if(UNIX)
+    #-- 官网推荐，避免编译 test -- 需要在 add_subdirectory 语句之前
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw_unix)
+    set(GLFW_LIBLIST glfw ${GLFW_LIBRARIES})
+else(WIN32 AND NOT APPLE)
+    set(GLFW_LIBLIST glfw3)
+    link_directories(glew GLFW)
+endif(UNIX)
 include_directories(glad glew GLFW glm include)
-link_directories(glew GLFW)
 
 set(COMMON_SRC
     src/package/GLManager.h
@@ -37,9 +47,7 @@ add_executable(${PROJECT_NAME} "src/${SRC_FILE}.cpp" ${COMMON_SRC})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${EXE_NAME})
 
-target_link_libraries(${PROJECT_NAME} glfw3
-#    glew32 opengl32 glu32
-    )
+target_link_libraries(${PROJECT_NAME} ${GLFW_LIBLIST})
 
 #ADD_CUSTOM_TARGET(debug ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Debug ${PROJECT_SOURCE_DIR})
 #ADD_CUSTOM_TARGET(release ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Release ${PROJECT_SOURCE_DIR})

@@ -1,4 +1,7 @@
 ﻿#include <iostream>
+#include <libgen.h>
+#include <unistd.h>
+
 #include "package/GLManager.h"
 #include "glad.h"
 #include "glfw3.h"
@@ -24,6 +27,7 @@ void processInput(GLFWwindow *window);
 
 int main(int argc, char **argv)
 {
+    chdir(dirname(argv[0]));
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -44,161 +48,118 @@ int main(int argc, char **argv)
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    float vertices[] =
+    {
+        0.5f, 0.5f, 0.5f, // front
+        0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
+
+        -0.5f, 0.5f, -0.5f, // back
+        -0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
+
+        -0.5f, 0.5f, 0.5f, // left
+        -0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
+
+        0.5f, 0.5f, -0.5f, // right
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
+
+        0.5f, 0.5f, -0.5f, // top
+        0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, 0.5f,
+        -0.5f, 0.5f, -0.5f,
+
+        -0.5f, -0.5f, -0.5f, // bottom
+        -0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, 0.5f,
+        0.5f, -0.5f, -0.5f,
+
+    };
+
     unsigned int indices[] =
     {
         0, 1, 3,
         1, 2, 3,
-        7, 6, 4,
-        6, 5, 4,
-        3, 2, 7,
-        2, 6, 7,
-        4, 5, 0,
-        5, 1, 0,
-        4, 0, 7,
-        0, 3, 7,
-        6, 2, 5,
-        2, 1, 5
+        4, 5, 7,
+        5, 6, 7,
+        8, 9, 11,
+        9, 10, 11,
+        12, 13, 15,
+        13, 14, 15,
+        16, 17, 19,
+        17, 18, 19,
+        20, 21, 23,
+        21, 22, 23
     };
-//    float vertices[] =
-//    {
-//        0.5f, 0.5f, 0.5f,
-//        0.5f, -0.5f, 0.5f,
-//        -0.5f, -0.5f, 0.5f,
-//        -0.5f, 0.5f, 0.5f,
 
-//        0.5f, 0.5f, -0.5f,
-//        0.5f, -0.5f, -0.5f,
-//        -0.5f, -0.5f, -0.5f,
-//        -0.5f, 0.5f, -0.5f
-//    };
-//    float texCoords[] =
-//    {
-//        1.0f, 1.0f,
-//        1.0f, 0.0f,
-//        0.0f, 0.0f,
-//        0.0f, 1.0f,
-
-//        1.0f, 1.0f,
-//        1.0f, 0.0f,
-//        0.0f, 0.0f,
-//        0.0f, 1.0f,
-//    };
-
-    float vertices[] =
+    float texCoords[] =
     {
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f,  0.5f, -0.5f,
-        0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f,
 
-        -0.5f, -0.5f,  0.5f,
-        0.5f, -0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f,
 
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f,
 
-        0.5f,  0.5f,  0.5f,
-        0.5f,  0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f,
 
-        -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f,  0.5f,
-        0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f,  0.5f,
-        -0.5f, -0.5f, -0.5f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f,
-        0.5f,  0.5f, -0.5f,
-        0.5f,  0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f, -0.5f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f,
     };
-    float texCoords[] = {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
 
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
-
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-
-        1.0f, 0.0f,
-        1.0f, 1.0f,
-        0.0f, 1.0f,
-        0.0f, 1.0f,
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-
-        0.0f, 1.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 0.0f,
-        0.0f, 1.0f
-    };
     glm::vec3 cubePositions[] = {
         glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
+//        glm::vec3( 2.0f,  5.0f, -15.0f),
+//        glm::vec3(-1.5f, -2.2f, -2.5f),
+//        glm::vec3(-3.8f, -2.0f, -12.3f),
+//        glm::vec3( 2.4f, -0.4f, -3.5f),
+//        glm::vec3(-1.7f,  3.0f, -7.5f),
+//        glm::vec3( 1.3f, -2.0f, -2.5f),
+//        glm::vec3( 1.5f,  2.0f, -2.5f),
+//        glm::vec3( 1.5f,  0.2f, -1.5f),
+//        glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
     GLManager gm;
 
     int width, height, nrChannels;
-    unsigned char *data;
+    unsigned char *data = NULL;
     float radius = 15.0f;
     stbi_set_flip_vertically_on_load(true);
 
-    data = stbi_load("../shaders/luoying.jpg", &width, &height, &nrChannels, 0);
+    data = stbi_load("../shaders/tianhe.jpg", &width, &height, &nrChannels, 0);
     gm.genImageData(data, width, height, 0);
-    data = stbi_load("../shaders/llvm.png", &width, &height, &nrChannels, 0);
+    data = stbi_load("../shaders/awesomeface.png", &width, &height, &nrChannels, 0);
     gm.genImageData(data, width, height, 1);
 
     gm.readShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag");
     gm.setVertexArray(vertices, sizeof(vertices), 0, 3);
-    //gm.genIndexArray(indices, sizeof(indices));
+    gm.genIndexArray(indices, sizeof(indices));
     gm.setTextureArray(texCoords, sizeof(texCoords), 1, 2);
 
     glm::mat4 model, view, projection, mvp;
@@ -222,11 +183,11 @@ int main(int argc, char **argv)
         //projection = glm::ortho(0.0f, 800.0f, 0.0f, (float)screenHeight, 0.1f, 100.0f);
 
         GLuint mvpLoc = glGetUniformLocation(gm.programId(), "modViewProj");
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); ++i)
         {
             model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
             float _angle = 15.0f * (i + 1);
-            model = glm::rotate(model, glm::radians(_angle) * (float)glfwGetTime(), glm::vec3(1.0f, 0.3f, 0.5f));
+            model = glm::rotate(model, glm::radians(_angle) * (float)currentFrame, glm::vec3(1.0f, 0.3f, 0.5f));
             mvp = projection * view * model;
 
             glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
