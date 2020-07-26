@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+﻿cmake_minimum_required(VERSION 3.2)
 
 project(LearnOpenGL)
 
@@ -14,18 +14,17 @@ else()
     set(EXE_NAME ${PROJECT_NAME})
 endif()
 
-if(UNIX)
-    #-- 官网推荐，避免编译 test -- 需要在 add_subdirectory 语句之前
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw_unix)
-    set(GLFW_LIBLIST glfw ${GLFW_LIBRARIES})
-else(WIN32 AND NOT APPLE)
-    set(GLFW_LIBLIST glfw3)
-    link_directories(glew GLFW)
-endif(UNIX)
-include_directories(glad glew GLFW glm include)
+#if(WIN32)
+    #link_directories(GLFW)
+#endif(WIN32)
+
+include_directories(glad glfw/include/GLFW glm stb_image)
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw)
+set(GLFW_LIBLIST glfw ${GLFW_LIBRARIES})
 
 set(COMMON_SRC
     src/package/GLManager.h

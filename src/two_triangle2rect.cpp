@@ -1,4 +1,4 @@
-﻿#define MYPROGRAM_USE_GLEW
+﻿//#define MYPROGRAM_USE_GLEW
 #define GLEW_STATIC
 #include <iostream> 
 #include <cmath>
@@ -162,8 +162,9 @@ int main()
         float greenValue = std::sin(glfwGetTime()) / 2.0f + 0.5f;
         int vertexColorLocation = glGetUniformLocation(shaderProgram, "myColor");
         glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-    
+
         glBindVertexArray(VAO);
+
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         
         glfwSwapBuffers(window);

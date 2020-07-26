@@ -12,22 +12,19 @@
 
 GLManager::GLManager()
     : m_programID(0)
-    , m_vbo(0)
     , m_vao(0)
     , m_ebo(0)
     , m_texture(0)
     , m_texture1(0)
-    , m_vboTexture(0)
 {
+    glGenVertexArrays(1, &m_vao);
 }
 
 GLManager::~GLManager()
 {
     glDeleteVertexArrays(1, &m_vao);
-    glDeleteBuffers(1, &m_vbo);
-    glDeleteBuffers(1, &m_vboTexture);
     glDeleteProgram(m_programID);
-    glDeleteTextures(1, &m_texture);
+    //glDeleteTextures(1, &m_texture);
 }
 
 void GLManager::readShaderFile(const char *vertexPath, const char *fragmentPath)
@@ -102,35 +99,24 @@ void GLManager::readShaderFile(const char *vertexPath, const char *fragmentPath)
     glDeleteShader(fragmentShader);
 }
 
-void GLManager::setVertexArray(float *vertices, int vertSize, int location, int vertStep)
+void GLManager::setVertexArray(int location, int vertStep, float *vertices, int vertSize)
 {
-    glGenBuffers(1, &m_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    unsigned int VBO;
+    glBindVertexArray(m_vao);
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertSize, vertices, GL_STATIC_DRAW);
 
-    glGenVertexArrays(1, &m_vao);
-    glBindVertexArray(m_vao);
     glVertexAttribPointer(location, vertStep, GL_FLOAT, GL_FALSE, vertStep * sizeof(float), (void*)0);
     glEnableVertexAttribArray(location);
 
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+    // release bind: VBO, VAO
+    // 由于 glVertexAttribPointer 已经将 具体 VBO数据 绑定到 对应 VAO 上了, 所以，现在 解绑 VBO 是允许的
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    ///glBindVertexArray(0);
+//    glBindVertexArray(0);
 }
 
-void GLManager::setTextureArray(float *tex, int size, int location, int vertStep)
-{
-    glGenBuffers(1, &m_vboTexture);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vboTexture);
-    glBufferData(GL_ARRAY_BUFFER, size, tex, GL_STATIC_DRAW);
-
-//    glVertexAttribPointer(location, vertStep, GL_FLOAT, GL_FALSE, vertStep * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(location);
-}
-
-void GLManager::genIndexArray(unsigned int *idx, int size)
+void GLManager::setIndexArray(unsigned int *idx, int size)
 {
     glGenBuffers(1, &m_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
@@ -170,15 +156,10 @@ void GLManager::paintTriangles(int firstIndex, int count)
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, m_texture1);
 
+    glBindVertexArray(m_vao);
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
     glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vboTexture);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-//    glBindVertexArray(m_vao);
     if (m_ebo != 0)
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)firstIndex);
     else
