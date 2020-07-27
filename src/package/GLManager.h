@@ -1,6 +1,7 @@
 ﻿#ifndef GLMANAGER_H
 #define GLMANAGER_H
 
+
 class GLManager
 {
 public:
@@ -20,8 +21,7 @@ private:
 //    unsigned int        m_vbo; // 顶点缓冲对象
     unsigned int        m_vao; // 顶点数组对象
     unsigned int        m_ebo; // 索引缓冲对象
-    unsigned int        m_texture; // 纹理
-    unsigned int        m_texture1; // 纹理
+    unsigned int        m_texture[6];
 //    unsigned int        m_vboTexture; // 纹理
     char                m_errorLog[512];
 

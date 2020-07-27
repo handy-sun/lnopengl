@@ -14,8 +14,6 @@ GLManager::GLManager()
     : m_programID(0)
     , m_vao(0)
     , m_ebo(0)
-    , m_texture(0)
-    , m_texture1(0)
 {
     glGenVertexArrays(1, &m_vao);
 }
@@ -24,7 +22,6 @@ GLManager::~GLManager()
 {
     glDeleteVertexArrays(1, &m_vao);
     glDeleteProgram(m_programID);
-    //glDeleteTextures(1, &m_texture);
 }
 
 void GLManager::readShaderFile(const char *vertexPath, const char *fragmentPath)
@@ -125,45 +122,50 @@ void GLManager::setIndexArray(unsigned int *idx, int size)
 
 void GLManager::genImageData(unsigned char *imageData, int width, int height, int index)
 {
-    if (index == 0)
-    {
-        glGenTextures(1, &m_texture);
-        glBindTexture(GL_TEXTURE_2D, m_texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-    }
-    else if (index == 1)
-    {
-        glGenTextures(1, &m_texture1);
-        glBindTexture(GL_TEXTURE_2D, m_texture1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-    }
+    if (index > 5 || index < 0)
+        return;
+
+    glGenTextures(1, &m_texture[index]);
+    glBindTexture(GL_TEXTURE_2D, m_texture[index]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    glGenerateMipmap(GL_TEXTURE_2D);    
 }
 
 void GLManager::paintTriangles(int firstIndex, int count)
 {
     glUseProgram(m_programID);
 
-    glUniform1i(glGetUniformLocation(m_programID, "sampTex1"), 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
+//    glUniform1i(glGetUniformLocation(m_programID, "sampTex1"), 0);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, m_texture);
 
-    glUniform1i(glGetUniformLocation(m_programID, "sampTex2"), 1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, m_texture1);
+//    glUniform1i(glGetUniformLocation(m_programID, "sampTex2"), 1);
+//    glActiveTexture(GL_TEXTURE1);
+//    glBindTexture(GL_TEXTURE_2D, m_texture1);
 
     glBindVertexArray(m_vao);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
 
-    if (m_ebo != 0)
-        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)firstIndex);
-    else
-        glDrawArrays(GL_TRIANGLES, firstIndex, count);
+    for (int i = 0; i < 6; ++i)
+    {
+        if (m_texture[i] == 0)
+            continue;
+
+        glBindTexture(GL_TEXTURE_2D, m_texture[i]);
+        if (m_ebo != 0)
+        {
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, reinterpret_cast<void *>(6 * i * sizeof(GLuint)));
+        }
+        else
+        {
+            glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
+        }
+    }
 
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);

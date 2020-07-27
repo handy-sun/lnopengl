@@ -3,6 +3,7 @@
 #include <libgen.h>
 #include <unistd.h>
 #endif
+#include <cstdlib>
 
 #include "package/GLManager.h"
 #include "glad.h"
@@ -21,7 +22,7 @@ const unsigned int screenHeight = 600;
 float cameraSpeed = 0.05f; // adjust accordingly
 
 bool firstMouse = true;
-bool isPress = false;
+int buttonKey = -1;
 float yaw = -90.0f;  // yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to
                      // the right so we initially rotate a bit to the left.
 float pitch = 0.0f;
@@ -31,13 +32,70 @@ float deltaTime = 0.0f;      // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 float fov = 45.0f;
 
-float objRotation;
+float objXRotation, objYRotation;
 glm::vec3 rotationAxis = glm::vec3(1.0f, 1.0f, 0.0f);
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::mat4 model(1.0f);
+
+//绕任意轴的旋转
+glm::mat4 RotateArbitraryLine(glm::vec3 v1, glm::vec3 v2, float theta)
+{
+    glm::mat4 rmatrix;
+    float a = v1.x;
+    float b = v1.y;
+    float c = v1.z;
+
+    glm::vec3 p1 = v2 - v1;
+    glm::vec3 p = glm::normalize(p1);
+
+    float u = p.x;
+    float v = p.y;
+    float w = p.z;
+
+    float uu = u * u;
+    float uv = u * v;
+    float uw = u * w;
+    float vv = v * v;
+    float vw = v * w;
+    float ww = w * w;
+    float au = a * u;
+    float av = a * v;
+    float aw = a * w;
+    float bu = b * u;
+    float bv = b * v;
+    float bw = b * w;
+    float cu = c * u;
+    float cv = c * v;
+    float cw = c * w;
+
+    float costheta = glm::cos(theta);
+    float sintheta = glm::sin(theta);
+
+    rmatrix[0][0] = uu + (vv + ww) * costheta;
+    rmatrix[0][1] = uv * (1 - costheta) + w * sintheta;
+    rmatrix[0][2] = uw * (1 - costheta) - v * sintheta;
+    rmatrix[0][3] = 0;
+
+    rmatrix[1][0] = uv * (1 - costheta) - w * sintheta;
+    rmatrix[1][1] = vv + (uu + ww) * costheta;
+    rmatrix[1][2] = vw * (1 - costheta) + u * sintheta;
+    rmatrix[1][3] = 0;
+
+    rmatrix[2][0] = uw * (1 - costheta) + v * sintheta;
+    rmatrix[2][1] = vw * (1 - costheta) - u * sintheta;
+    rmatrix[2][2] = ww + (uu + vv) * costheta;
+    rmatrix[2][3] = 0;
+
+    rmatrix[3][0] = (a * (vv + ww) - u * (bv + cw)) * (1 - costheta) + (bw - cv) * sintheta;
+    rmatrix[3][1] = (b * (uu + ww) - v * (au + cw)) * (1 - costheta) + (cu - aw) * sintheta;
+    rmatrix[3][2] = (c * (uu + vv) - w * (au + bv)) * (1 - costheta) + (av - bu) * sintheta;
+    rmatrix[3][3] = 1;
+
+    return rmatrix;
+}
 
 void framebuffer_size_callback(GLFWwindow *, int width, int height)
 {
@@ -63,70 +121,55 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 {
     if (action == GLFW_PRESS)
     {
-        if (key == GLFW_KEY_RIGHT)
-        {
-            //std::cout << "right" << std::endl;
-        }
+        if (key == GLFW_KEY_ESCAPE)
+            glfwSetWindowShouldClose(window, true);
+
+        if (key == GLFW_KEY_W)
+            cameraPos += cameraSpeed * cameraFront;
+        if (key == GLFW_KEY_S)
+            cameraPos -= cameraSpeed * cameraFront;
+        if (key == GLFW_KEY_A)
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        if (key == GLFW_KEY_D)
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     }
 }
 
 void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
     static float sensitivity = 0.05f;
-    if(firstMouse)
+    if (firstMouse)
     {
         lastX = xpos;
         lastY = ypos;
         firstMouse = false;
-    }
+    }   
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // y坐标是从底部往顶部依次增大的
+    double xOffset = xpos - lastX;
+    double yOffset = lastY - ypos; // y坐标是从底部往顶部依次增大的
     lastX = xpos;
     lastY = ypos;
 
-    if (isPress && xoffset > 3 && yoffset > 3)
+    if (buttonKey >= 0)
     {
-        double dis = sqrt(xoffset * xoffset + yoffset * yoffset);
-        objRotation += sensitivity * dis;
-        if (objRotation > 360.0f)
-            objRotation -= 360.0f;
-        else if (objRotation < 0.0f)
-            objRotation += 360.0f;
-
-        //double angle = asin(yoffset / dis) * M_PI / 180.0f;
-        rotationAxis.x += yoffset / dis;
-        rotationAxis.y += xoffset / dis;
-        std::cout << objRotation << "," << rotationAxis.x << "," << rotationAxis.y << std::endl;
+        objXRotation = 10.0f * sensitivity * xOffset;
+        //rotationAxis = glm::vec3(xOffset / dis, yOffset / dis, 0.0f);
     }
-
-//    xoffset *= sensitivity;
-//    yoffset *= sensitivity;
-
-//    yaw += xoffset;
-//    pitch += yoffset;
-
-//    if (pitch > 89.0f)
-//        pitch = 89.0f;
-//    else if (pitch < -89.0f)
-//        pitch = -89.0f;
-
-//    glm::vec3 front;
-//    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-//    front.y = sin(glm::radians(pitch));
-//    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-//    cameraFront = glm::normalize(front);
+    else
+    {
+        objXRotation = 0.0f;
+    }
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if (action == GLFW_PRESS)
     {
-        isPress = true;
+        buttonKey = button;
     }
     else
     {
-        isPress = false;
+        buttonKey = -1;
     }
 }
 
@@ -160,7 +203,7 @@ int main(int argc, char **argv)
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    glfwSetKeyCallback(window, key_callback);
+    //glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, cursor_pos_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 //    glfwSetScrollCallback(window, scroll_callback);
@@ -270,13 +313,26 @@ int main(int argc, char **argv)
 
     int width, height, nrChannels;
     unsigned char *data = NULL;
-    float radius = 15.0f;
+
+    //float radius = 15.0f;
     stbi_set_flip_vertically_on_load(true);
 
-    data = stbi_load("../shaders/llvm.png", &width, &height, &nrChannels, 0);
-    gm.genImageData(data, width, height, 0);
-    data = stbi_load("../shaders/awesomeface.png", &width, &height, &nrChannels, 0);
-    gm.genImageData(data, width, height, 1);
+    std::string pictures[] = {
+        "../shaders/golden-border.png",
+        "../shaders/llvm.png",
+        "../shaders/wm.png",
+        "../shaders/ps.png",
+        "../shaders/awesomeface.png",
+        "../shaders/tianhe.jpg"
+    };
+
+    for (int i = 0; i < 6; ++i)
+    {
+        data = stbi_load(pictures[i].c_str(), &width, &height, &nrChannels, 0);
+        gm.genImageData(data, width, height, i);
+        free(data);
+        data = NULL;
+    }
 
     gm.readShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag");
     gm.setVertexArray(0, 3, vertices, sizeof(vertices));
@@ -292,25 +348,23 @@ int main(int argc, char **argv)
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
         cameraSpeed = 3.5f * deltaTime;
-        //processInput(window);
+        processInput(window);
 
         glEnable(GL_DEPTH_TEST);
 //        glEnable(GL_TEXTURE_2D);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        //view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+        view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         projection = glm::perspective(glm::radians(fov), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-        //projection = glm::ortho(0.0f, 800.0f, 0.0f, (float)screenHeight, 0.1f, 100.0f);
 
         GLuint mvpLoc = glGetUniformLocation(gm.programId(), "modViewProj");
         for (int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); ++i)
         {
             //model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
-            float _angle = 15.0f * (i + 1);
-            if (isPress)
-            model = glm::rotate(model, glm::radians(objRotation), rotationAxis/*glm::vec3(0.0f, 1.0f, 0.0f)*/);
+//            float _angle = 15.0f * (i + 1);
+            model = glm::rotate(model, glm::radians(objXRotation), glm::vec3(0.0f, 1.0f, 0.0f));
             mvp = projection * view * model;
 
             glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -322,7 +376,7 @@ int main(int argc, char **argv)
         glfwPollEvents();
     }
     glfwTerminate();
-    stbi_image_free(data);
+    //stbi_image_free(data);
     return 0;
 }
 
