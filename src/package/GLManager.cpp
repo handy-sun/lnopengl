@@ -120,14 +120,18 @@ void GLManager::setIndexArray(unsigned int *idx, int size)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, idx, GL_STATIC_DRAW);
 }
 
-void GLManager::genImageData(unsigned char *imageData, int width, int height, int index)
+void GLManager::genImageData(unsigned char *imageData, int width, int height, int index, int channel)
 {
     if (index > 5 || index < 0)
         return;
 
     glGenTextures(1, &m_texture[index]);
     glBindTexture(GL_TEXTURE_2D, m_texture[index]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+    if (channel == 4)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+    else
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

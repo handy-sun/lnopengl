@@ -317,30 +317,32 @@ int main(int argc, char **argv)
     //float radius = 15.0f;
     stbi_set_flip_vertically_on_load(true);
 
-    std::string pictures[] = {
-        "../shaders/golden-border.png",
-        "../shaders/llvm.png",
-        "../shaders/wm.png",
-        "../shaders/ps.png",
-        "../shaders/awesomeface.png",
-        "../shaders/tianhe.jpg"
+    std::string pictures[] =
+    {
+        "llvm.png",
+        "QQ2017.png",
+        "block.png",
+        "webq.png",
+        "awesomeface.png",
+        "compass_plate.png"
     };
 
     for (int i = 0; i < 6; ++i)
     {
-        data = stbi_load(pictures[i].c_str(), &width, &height, &nrChannels, 0);
-        gm.genImageData(data, width, height, i);
+        std::string folders("../shaders/");
+        folders.append(pictures[i].c_str());
+        data = stbi_load(folders.c_str(), &width, &height, &nrChannels, 0);
+        gm.genImageData(data, width, height, i, nrChannels);
         free(data);
         data = NULL;
     }
-
+    std::cout << std::endl;
     gm.readShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag");
     gm.setVertexArray(0, 3, vertices, sizeof(vertices));
     gm.setVertexArray(1, 2, texCoords, sizeof(texCoords));
     gm.setIndexArray(indices, sizeof(indices));
 
     glm::mat4 view, projection, mvp;
-//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe Mode
 
     while (!glfwWindowShouldClose(window))
     {
