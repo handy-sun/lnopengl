@@ -1,5 +1,5 @@
 ﻿#include "GLManager.h"
-#include <string>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -14,8 +14,10 @@ GLManager::GLManager()
     : m_programID(0)
     , m_vao(0)
     , m_ebo(0)
+    , m_arrayBufferCount(0)
 {
     glGenVertexArrays(1, &m_vao);
+    memset(m_texture, 0, 6 * sizeof(unsigned int));
 }
 
 GLManager::~GLManager()
@@ -98,6 +100,9 @@ void GLManager::readShaderFile(const char *vertexPath, const char *fragmentPath)
 
 void GLManager::setVertexArray(int location, int vertStep, float *vertices, int vertSize)
 {
+    if (location == m_arrayBufferCount)
+        ++m_arrayBufferCount;
+
     unsigned int VBO;
     glBindVertexArray(m_vao);
     glGenBuffers(1, &VBO);
@@ -142,7 +147,6 @@ void GLManager::genImageData(unsigned char *imageData, int width, int height, in
 void GLManager::paintTriangles(int firstIndex, int count)
 {
     glUseProgram(m_programID);
-
 //    glUniform1i(glGetUniformLocation(m_programID, "sampTex1"), 0);
 //    glActiveTexture(GL_TEXTURE0);
 //    glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -150,17 +154,17 @@ void GLManager::paintTriangles(int firstIndex, int count)
 //    glUniform1i(glGetUniformLocation(m_programID, "sampTex2"), 1);
 //    glActiveTexture(GL_TEXTURE1);
 //    glBindTexture(GL_TEXTURE_2D, m_texture1);
-
+    for (int i = 0; i < m_arrayBufferCount; ++i)
+    {
+        glEnableVertexAttribArray(i);
+    }
     glBindVertexArray(m_vao);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
 
     for (int i = 0; i < 6; ++i)
     {
-        if (m_texture[i] == 0)
-            continue;
+        if (m_texture[i] != 0)
+            glBindTexture(GL_TEXTURE_2D, m_texture[i]);
 
-        glBindTexture(GL_TEXTURE_2D, m_texture[i]);
         if (m_ebo != 0)
         {
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, reinterpret_cast<void *>(6 * i * sizeof(GLuint)));
@@ -170,7 +174,4 @@ void GLManager::paintTriangles(int firstIndex, int count)
             glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
         }
     }
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
 }

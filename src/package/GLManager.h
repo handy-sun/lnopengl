@@ -18,11 +18,10 @@ public:
 
 private:
     unsigned int        m_programID;
-//    unsigned int        m_vbo; // 顶点缓冲对象
     unsigned int        m_vao; // 顶点数组对象
     unsigned int        m_ebo; // 索引缓冲对象
     unsigned int        m_texture[6];
-//    unsigned int        m_vboTexture; // 纹理
+    int                 m_arrayBufferCount;
     char                m_errorLog[512];
 
 };
