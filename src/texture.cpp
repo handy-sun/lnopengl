@@ -25,6 +25,7 @@ float cameraSpeed = 0.05f; // adjust accordingly
 
 bool firstMouse = true;
 int buttonKey = -1;
+bool isCtrlMod;
 float yaw = -90.0f;  // yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to
                      // the right so we initially rotate a bit to the left.
 float pitch = 0.0f;
@@ -36,7 +37,7 @@ float fov = 45.0f;
 
 float cubeRotation;
 
-glm::vec3 cameraPos = glm::vec3(0.8f, 0.0f, 5.0f);
+glm::vec3 cameraPos = glm::vec3(0.7f, 0.8f, 4.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::mat4 cubeModel(1.0f);
@@ -63,11 +64,19 @@ void processInput(GLFWwindow *window)
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+    if (key == GLFW_KEY_LEFT_CONTROL && mods & GLFW_MOD_CONTROL)
+    {
+        isCtrlMod = true;
+    }
+    else
+    {
+        isCtrlMod = false;
+    }
 }
 
 void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    static float sensitivity = 0.5f;
+    static float sensitivity = 0.05f;
     if (xpos > screenWidth || ypos > screenHeight)
     {
         firstMouse = true;
@@ -86,16 +95,35 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
-    if (buttonKey >= 0)
+    if (isCtrlMod)
     {
-        if (buttonKey == GLFW_MOUSE_BUTTON_LEFT)
-            cubeRotation = sensitivity * xOffset;
-        else if (buttonKey == GLFW_MOUSE_BUTTON_RIGHT)
-            cubeRotation = sensitivity * yOffset;
+        yaw += xOffset;
+        pitch += yOffset;
+
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        else if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        glm::vec3 front;
+        front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+        front.y = sin(glm::radians(pitch));
+        front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+        cameraFront = glm::normalize(front);
     }
     else
     {
-        cubeRotation = 0.0f;
+        if (buttonKey >= 0)
+        {
+            if (buttonKey == GLFW_MOUSE_BUTTON_LEFT)
+                cubeRotation = 0.2f * xOffset;
+            else if (buttonKey == GLFW_MOUSE_BUTTON_RIGHT)
+                cubeRotation = 0.2f * yOffset;
+        }
+        else
+        {
+            cubeRotation = 0.0f;
+        }
     }
 }
 
@@ -139,8 +167,8 @@ int main(int argc, char **argv)
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    //glfwSetKeyCallback(window, key_callback);
+//    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, cursor_pos_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
@@ -266,6 +294,45 @@ int main(int argc, char **argv)
         0.0f, 1.0f, 1.0f,
     };
 
+    float normals[] =
+    {
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+
+        0.0f, 0.0f, -1.0f,
+        0.0f, 0.0f, -1.0f,
+        0.0f, 0.0f, -1.0f,
+        0.0f, 0.0f, -1.0f,
+
+        -1.0f, 0.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f,
+
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+
+        0.0f, -1.0f, 0.0f,
+        0.0f, -1.0f, 0.0f,
+        0.0f, -1.0f, 0.0f,
+        0.0f, -1.0f, 0.0f,
+    };
+
+    for (int i = 0; i < sizeof(colors) / sizeof(float); i += 3)
+    {
+        colors[i] = 1.0f;
+        colors[i + 1] = 0.50f;
+        colors[i + 2] = 0.31f;
+    }
     int width, height, nrChannels;
     unsigned char *data = NULL;
     GLManager cube, light;
@@ -295,6 +362,7 @@ int main(int argc, char **argv)
     cube.setVertexArray(0, 3, vertices, sizeof(vertices));
     cube.setVertexArray(1, 3, colors, sizeof(colors));
     cube.setVertexArray(2, 2, texCoords, sizeof(texCoords));
+    cube.setVertexArray(3, 3, normals, sizeof(normals));
     cube.setIndexArray(indices, sizeof(indices));
 
     light.readShaderFile("../shaders/lightcube.vert", "../shaders/lightcube.frag");
@@ -303,7 +371,6 @@ int main(int argc, char **argv)
 
     glm::mat4 view, projection, mvp, lightModel;
     glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-//    glm::vec3 objColor(1.0f, 0.5f, 0.31f);
     glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 
     glEnable(GL_DEPTH_TEST);
@@ -318,7 +385,6 @@ int main(int argc, char **argv)
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         projection = glm::perspective(glm::radians(fov), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
         if (buttonKey >= 0)
@@ -326,16 +392,18 @@ int main(int argc, char **argv)
             cubeModel = glm::rotate(cubeModel, glm::radians(cubeRotation), buttonKey == 0 ? glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f));
         }
         mvp = projection * view * cubeModel;
-        glUseProgram(cube.programId());
+        cube.use();
         glUniformMatrix4fv(glGetUniformLocation(cube.programId(), "modViewProj"), 1, GL_FALSE, &mvp[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(cube.programId(), "model"), 1, GL_FALSE, &cubeModel[0][0]);
         glUniform3fv(glGetUniformLocation(cube.programId(), "lightColor"), 1, &lightColor[0]);
+        glUniform3fv(glGetUniformLocation(cube.programId(), "lightPos"), 1, &lightPos[0]);
+        glUniform3fv(glGetUniformLocation(cube.programId(), "viewPos"), 1, &cameraPos[0]);
         cube.paintTriangles(0, sizeof(indices) / sizeof(GLuint));
 
-        lightModel = glm::mat4(1.0f);
-        lightModel = glm::translate(lightModel, lightPos);
+        lightModel = glm::translate(glm::mat4(1.0f), lightPos);
         lightModel = glm::scale(lightModel, glm::vec3(0.2f));
         mvp = projection * view * lightModel;
-        glUseProgram(light.programId());
+        light.use();
         glUniformMatrix4fv(glGetUniformLocation(light.programId(), "modViewProj"), 1, GL_FALSE, &mvp[0][0]);
         light.paintTriangles(0, sizeof(indices) / sizeof(GLuint));
 

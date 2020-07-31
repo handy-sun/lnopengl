@@ -26,6 +26,11 @@ GLManager::~GLManager()
     glDeleteProgram(m_programID);
 }
 
+void GLManager::use()
+{
+    glUseProgram(m_programID);
+}
+
 void GLManager::readShaderFile(const char *vertexPath, const char *fragmentPath)
 {
     std::string vertexCode, fragmentCode;
@@ -146,7 +151,7 @@ void GLManager::genImageData(unsigned char *imageData, int width, int height, in
 
 void GLManager::paintTriangles(int firstIndex, int count)
 {
-    glUseProgram(m_programID);
+    use();
 //    glUniform1i(glGetUniformLocation(m_programID, "sampTex1"), 0);
 //    glActiveTexture(GL_TEXTURE0);
 //    glBindTexture(GL_TEXTURE_2D, m_texture);

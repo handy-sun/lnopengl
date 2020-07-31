@@ -10,6 +10,7 @@ public:
 
     unsigned int programId() const { return m_programID; }
 
+    void use();
     void readShaderFile(const char *vertexPath, const char *fragmentPath);
     void setVertexArray(int location, int vertStep, float *vertices, int vertSize);
     void setIndexArray(unsigned int *vertices, int size);
