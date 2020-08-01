@@ -31,6 +31,16 @@ void GLManager::use()
     glUseProgram(m_programID);
 }
 
+void GLManager::setVec3(const char *varName, const float *ptr)
+{
+    glUniform3fv(glGetUniformLocation(m_programID, varName), 1, ptr);
+}
+
+void GLManager::setMat4(const char *varName, const float *ptr)
+{
+    glUniformMatrix4fv(glGetUniformLocation(m_programID, varName), 1, GL_FALSE, ptr);
+}
+
 void GLManager::readShaderFile(const char *vertexPath, const char *fragmentPath)
 {
     std::string vertexCode, fragmentCode;
@@ -149,7 +159,7 @@ void GLManager::genImageData(unsigned char *imageData, int width, int height, in
     glGenerateMipmap(GL_TEXTURE_2D);    
 }
 
-void GLManager::paintTriangles(int firstIndex, int count)
+void GLManager::paintTriangles(int steps, int onceCount)
 {
     use();
 //    glUniform1i(glGetUniformLocation(m_programID, "sampTex1"), 0);
@@ -165,18 +175,25 @@ void GLManager::paintTriangles(int firstIndex, int count)
     }
     glBindVertexArray(m_vao);
 
-    for (int i = 0; i < 6; ++i)
+    if (m_ebo != 0)
     {
-        if (m_texture[i] != 0)
-            glBindTexture(GL_TEXTURE_2D, m_texture[i]);
+        for (int i = 0; i < steps; ++i)
+        {
+            if (m_texture[i] != 0)
+                glBindTexture(GL_TEXTURE_2D, m_texture[i]);
 
-        if (m_ebo != 0)
-        {
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, reinterpret_cast<void *>(6 * i * sizeof(GLuint)));
+            glDrawElements(GL_TRIANGLES, onceCount,
+                           GL_UNSIGNED_INT, reinterpret_cast<void *>(onceCount * i * sizeof(GLuint)));
         }
-        else
+    }
+    else
+    {
+        for (int i = 0; i < steps; ++i)
         {
-            glDrawArrays(GL_TRIANGLE_FAN, i * 4, 4);
+            if (m_texture[i] != 0)
+                glBindTexture(GL_TEXTURE_2D, m_texture[i]);
+
+            glDrawArrays(GL_TRIANGLE_FAN, i * onceCount, onceCount);
         }
     }
 }

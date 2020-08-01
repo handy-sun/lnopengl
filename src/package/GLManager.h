@@ -11,11 +11,13 @@ public:
     unsigned int programId() const { return m_programID; }
 
     void use();
+    void setVec3(const char *varName, const float *ptr);
+    void setMat4(const char *varName, const float *ptr);
     void readShaderFile(const char *vertexPath, const char *fragmentPath);
     void setVertexArray(int location, int vertStep, float *vertices, int vertSize);
     void setIndexArray(unsigned int *vertices, int size);
     void genImageData(unsigned char *imageData, int width, int height, int index, int channel = 3);
-    void paintTriangles(int firstIndex, int count);
+    void paintTriangles(int steps, int onceCount);
 
 private:
     unsigned int        m_programID;
