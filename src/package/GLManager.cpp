@@ -22,8 +22,10 @@ GLManager::GLManager()
 
 GLManager::~GLManager()
 {
+#ifdef WIN32
     glDeleteVertexArrays(1, &m_vao);
     glDeleteProgram(m_programID);
+#endif
 }
 
 void GLManager::use()

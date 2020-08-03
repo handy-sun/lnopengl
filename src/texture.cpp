@@ -24,8 +24,8 @@ const unsigned int screenHeight = 600;
 glm::mat4 cubeModel(1.0f);
 
 FirstPersonCamera ca(0.7f, 0.8f, 4.0f);
-constexpr float vt = sqrt(3.0) / 3.0f;
-constexpr float side = sqrt(3.0) / 6.0f;
+const float vt = sqrt(3.0) / 3.0f;
+const float side = sqrt(3.0) / 6.0f;
 
 int main(int argc, char **argv)
 {
@@ -52,21 +52,11 @@ int main(int argc, char **argv)
     }
     ca.setWindowSize(window, screenWidth, screenHeight);
 
-    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *, int width, int height){
-        glViewport(0, 0, width, height);
-    });
-    glfwSetKeyCallback(window, [=](GLFWwindow *_, int key, int scancode, int action, int mods){
-        ca.keyCallback(_, key, scancode, action, mods);
-    });
-    glfwSetCursorPosCallback(window, [=](GLFWwindow *_,  double xpos, double ypos){
-        ca.cursorPosCallback(_, xpos, ypos);
-    });
-    glfwSetMouseButtonCallback(window, [=](GLFWwindow *_, int button, int action, int mods){
-        ca.mouseButtonCallback(_, button, action, mods);
-    });
-    glfwSetScrollCallback(window, [=](GLFWwindow *_,  double xpos, double ypos){
-        ca.scrollCallback(_, xpos, ypos);
-    });
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *, int width, int height){ glViewport(0, 0, width, height); });
+    glfwSetKeyCallback(window, [](GLFWwindow *_, int key, int scancode, int action, int mods){ ca.keyCallback(_, key, scancode, action, mods); });
+    glfwSetCursorPosCallback(window, [](GLFWwindow *_,  double xpos, double ypos){ ca.cursorPosCallback(_, xpos, ypos); });
+    glfwSetMouseButtonCallback(window, [](GLFWwindow *_, int button, int action, int mods){ ca.mouseButtonCallback(_, button, action, mods); });
+    glfwSetScrollCallback(window, [](GLFWwindow *_,  double xpos, double ypos){ ca.scrollCallback(_, xpos, ypos); });
 
     float vertices[] =
     {
@@ -119,6 +109,7 @@ int main(int argc, char **argv)
         0.5f, -side, -side,
         0.0f, vt, 0.0f,
     };
+
     unsigned int indices[] =
     {
         0, 1, 3,
@@ -298,10 +289,14 @@ int main(int argc, char **argv)
                                         glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f));
         }
         // 光源随时间移动
-        lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
-        lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
-//        lightPos.z = cos(glfwGetTime() / 2.0f) * 1.0f;
+        //lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
+        //lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
+        //lightPos.z = cos(glfwGetTime() / 2.0f) * 1.0f;
 
+        lightColor.x = sin(glfwGetTime() * 2.0f);
+        lightColor.y = sin(glfwGetTime() * 0.7f);
+        lightColor.z = sin(glfwGetTime() * 1.3f);
+        
         cube.use();
         cube.setMat4("projection", &projection[0][0]);
         cube.setMat4("view", &view[0][0]);
@@ -312,6 +307,7 @@ int main(int argc, char **argv)
         cube.setVec3("viewPos", ca.cameraPos());
         cube.paintTriangles(1, 36);
 
+        //lightModel = glm::rotate(lightModel, (float)glm::radians(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
         lightModel = glm::translate(glm::mat4(1.0f), lightPos);
         lightModel = glm::scale(lightModel, glm::vec3(0.3f));
         mvp = projection * view * lightModel;

@@ -32,6 +32,7 @@ set(GLFW_LIBLIST glfw ${GLFW_LIBRARIES})
 set(COMMON_SRC
     src/package/GLManager.h
     src/package/GLManager.cpp
+    src/package/firstpersoncamera.hpp
     glad/glad.c
 )
 
