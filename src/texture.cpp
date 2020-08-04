@@ -237,16 +237,12 @@ int main(int argc, char **argv)
 
     std::string pictures[] =
     {
-        "llvm.png",
-        "QQ2017.png",
-        "block.png",
-        "webq.png",
-        "awesomeface.png",
-        "compass_plate.png"
+        "container2.png",
+        "container2_specular.png"     
     };
 
     stbi_set_flip_vertically_on_load(true);
-    for (int i = 0; i < 6; ++i)
+    for (int i = 0; i < sizeof(pictures) / sizeof(std::string); ++i)
     {
         std::string folders("../res/");
         folders.append(pictures[i].c_str());
@@ -274,11 +270,13 @@ int main(int argc, char **argv)
     glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 
     glEnable(GL_DEPTH_TEST);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    cube.use();
+    cube.setInt1("sampDiffuse", 0);
+    cube.setInt1("sampSpecular", 1);
     while (!glfwWindowShouldClose(window))
     {
         ca.ProcessWindowEvent(glfwGetTime());
-
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         view = ca.GetViewMatrix();
@@ -289,8 +287,8 @@ int main(int argc, char **argv)
                                         glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f));
         }
         // 光源随时间移动
-        //lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
-        //lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
+        lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
+        lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
         //lightPos.z = cos(glfwGetTime() / 2.0f) * 1.0f;
 
         lightColor.x = sin(glfwGetTime() * 2.0f);
@@ -305,6 +303,7 @@ int main(int argc, char **argv)
         cube.setVec3("lightColor", &lightColor[0]);
         cube.setVec3("lightPos", &lightPos[0]);
         cube.setVec3("viewPos", ca.cameraPos());
+        
         cube.paintTriangles(1, 36);
 
         //lightModel = glm::rotate(lightModel, (float)glm::radians(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));

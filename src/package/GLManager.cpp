@@ -15,9 +15,10 @@ GLManager::GLManager()
     , m_vao(0)
     , m_ebo(0)
     , m_arrayBufferCount(0)
+    , m_textureCount(0)
 {
     glGenVertexArrays(1, &m_vao);
-    memset(m_texture, 0, 6 * sizeof(unsigned int));
+    memset(m_textures, 0, 6 * sizeof(unsigned int));
 }
 
 GLManager::~GLManager()
@@ -31,6 +32,16 @@ GLManager::~GLManager()
 void GLManager::use()
 {
     glUseProgram(m_programID);
+}
+
+unsigned int GLManager::textureId(int index) const
+{
+    return m_textures[index];
+}
+
+void GLManager::setInt1(const char *varName, int index)
+{
+    glUniform1i(glGetUniformLocation(m_programID, varName), index);
 }
 
 void GLManager::setVec3(const char *varName, const float *ptr)
@@ -147,8 +158,8 @@ void GLManager::genImageData(unsigned char *imageData, int width, int height, in
     if (index > 5 || index < 0)
         return;
 
-    glGenTextures(1, &m_texture[index]);
-    glBindTexture(GL_TEXTURE_2D, m_texture[index]);
+    glGenTextures(1, &m_textures[index]);
+    glBindTexture(GL_TEXTURE_2D, m_textures[index]);
     if (channel == 4)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
     else
@@ -158,43 +169,40 @@ void GLManager::genImageData(unsigned char *imageData, int width, int height, in
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glGenerateMipmap(GL_TEXTURE_2D);    
+    glGenerateMipmap(GL_TEXTURE_2D);  
+
+    ++m_textureCount;
 }
 
 void GLManager::paintTriangles(int steps, int onceCount)
 {
     use();
-//    glUniform1i(glGetUniformLocation(m_programID, "sampTex1"), 0);
-//    glActiveTexture(GL_TEXTURE0);
-//    glBindTexture(GL_TEXTURE_2D, m_texture);
-
-//    glUniform1i(glGetUniformLocation(m_programID, "sampTex2"), 1);
-//    glActiveTexture(GL_TEXTURE1);
-//    glBindTexture(GL_TEXTURE_2D, m_texture1);
     for (int i = 0; i < m_arrayBufferCount; ++i)
     {
         glEnableVertexAttribArray(i);
     }
     glBindVertexArray(m_vao);
 
+    for (int i = 0; i < m_textureCount; ++i)
+    {
+        if (m_textures[i] != 0)
+        {               
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, m_textures[i]);
+        }
+    }
+
     if (m_ebo != 0)
     {
         for (int i = 0; i < steps; ++i)
-        {
-            if (m_texture[i] != 0)
-                glBindTexture(GL_TEXTURE_2D, m_texture[i]);
-
-            glDrawElements(GL_TRIANGLES, onceCount,
-                           GL_UNSIGNED_INT, reinterpret_cast<void *>(onceCount * i * sizeof(GLuint)));
+        {            
+            glDrawElements(GL_TRIANGLES, onceCount, GL_UNSIGNED_INT, reinterpret_cast<void *>(onceCount * i * sizeof(GLuint)));
         }
     }
     else
     {
         for (int i = 0; i < steps; ++i)
         {
-            if (m_texture[i] != 0)
-                glBindTexture(GL_TEXTURE_2D, m_texture[i]);
-
             glDrawArrays(GL_TRIANGLE_FAN, i * onceCount, onceCount);
         }
     }
