@@ -19,11 +19,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-const unsigned int screenWidth = 600;
+const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
-glm::mat4 cubeModel(1.0f);
 
-FirstPersonCamera ca(0.7f, 0.8f, 4.0f);
+FirstPersonCamera ca(0.0f, 0.0f, 4.0f);
 const float vt = sqrt(3.0) / 3.0f;
 const float side = sqrt(3.0) / 6.0f;
 
@@ -249,7 +248,6 @@ int main(int argc, char **argv)
         data = stbi_load(folders.c_str(), &width, &height, &nrChannels, 0);
         cube.genImageData(data, width, height, i, nrChannels);
         free(data);
-        data = NULL;
     }
 
     cube.readShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag"); // 世界空间
@@ -266,8 +264,21 @@ int main(int argc, char **argv)
     light.setVertexArray(0, 3, fourspace, sizeof(fourspace)); // 用四面体模拟光源
 
     glm::mat4 view, projection, mvp, lightModel;
+    glm::mat4 cubeModel(1.0f), model(1.0f);
     glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
     glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f),
+        glm::vec3( 2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3( 1.3f, -2.0f, -2.5f),
+        glm::vec3( 1.5f,  2.0f, -2.5f),
+        glm::vec3( 1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
 
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -287,30 +298,39 @@ int main(int argc, char **argv)
                                         glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f));
         }
         // 光源随时间移动
-        lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
-        lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
+//        lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
+//        lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
         //lightPos.z = cos(glfwGetTime() / 2.0f) * 1.0f;
 
-        lightColor.x = sin(glfwGetTime() * 2.0f);
-        lightColor.y = sin(glfwGetTime() * 0.7f);
-        lightColor.z = sin(glfwGetTime() * 1.3f);
+//        lightColor.x = sin(glfwGetTime() * 2.0f);
+//        lightColor.y = sin(glfwGetTime() * 0.7f);
+//        lightColor.z = sin(glfwGetTime() * 1.3f);
         
         cube.use();
+        cube.setVec3("viewPos", ca.cameraPos());
         cube.setMat4("projection", &projection[0][0]);
         cube.setMat4("view", &view[0][0]);
-        cube.setMat4("model", &cubeModel[0][0]);
+//        cube.setMat4("model", &cubeModel[0][0]);
 
+        cube.setVec3("lightDirection", ca.cameraFront());
         cube.setVec3("lightColor", &lightColor[0]);
-        cube.setVec3("lightPos", &lightPos[0]);
-        cube.setVec3("viewPos", ca.cameraPos());
-        
-        cube.paintTriangles(1, 36);
+        //cube.setVec3("lightPos", &lightPos[0]);
+        cube.setVec3("lightPos", ca.cameraPos());
 
-        //lightModel = glm::rotate(lightModel, (float)glm::radians(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+        for (int i = 0; i < 10; i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f * i + 20.0f;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            cube.setMat4("model", &model[0][0]);
+
+            cube.paintTriangles(1, 36);
+        }
+
         lightModel = glm::translate(glm::mat4(1.0f), lightPos);
         lightModel = glm::scale(lightModel, glm::vec3(0.3f));
         mvp = projection * view * lightModel;
-
         light.use();
         light.setMat4("modViewProj", &mvp[0][0]);
         light.paintTriangles(1, 12);
