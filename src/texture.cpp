@@ -280,11 +280,20 @@ int main(int argc, char **argv)
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
+    glm::vec3 pointLightPositions[] = {
+        glm::vec3( 0.7f,  0.2f,  2.0f),
+        glm::vec3( 2.3f, -3.3f, -4.0f),
+        glm::vec3(-4.0f,  2.0f, -12.0f),
+        glm::vec3( 0.0f,  0.0f, -3.0f)
+    };
+    char buf[256];
+
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     cube.use();
     cube.setInt1("sampDiffuse", 0);
     cube.setInt1("sampSpecular", 1);
+
     while (!glfwWindowShouldClose(window))
     {
         ca.ProcessWindowEvent(glfwGetTime());
@@ -297,27 +306,50 @@ int main(int argc, char **argv)
             cubeModel = glm::rotate(cubeModel, glm::radians(ca.rotation()), ca.mouseButton() == 0 ?
                                         glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f));
         }
-        // 光源随时间移动
-//        lightPos.x = 1.0f + sin(glfwGetTime()) * 2.0f;
-//        lightPos.y = sin(glfwGetTime() / 2.0f) * 1.0f;
-        //lightPos.z = cos(glfwGetTime() / 2.0f) * 1.0f;
-
-//        lightColor.x = sin(glfwGetTime() * 2.0f);
-//        lightColor.y = sin(glfwGetTime() * 0.7f);
-//        lightColor.z = sin(glfwGetTime() * 1.3f);
         
         cube.use();
+        cube.setFloat("material.shininess", 32.0f);
         cube.setVec3("viewPos", ca.cameraPos());
         cube.setMat4("projection", &projection[0][0]);
         cube.setMat4("view", &view[0][0]);
-//        cube.setMat4("model", &cubeModel[0][0]);
+//        cube.setVec3("lightDirection", ca.cameraFront());
+//        cube.setVec3("lightColor", &lightColor[0]);
+//        cube.setVec3("lightPos", ca.cameraPos());
+        cube.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        cube.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+        cube.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        cube.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
-        cube.setVec3("lightDirection", ca.cameraFront());
-        cube.setVec3("lightColor", &lightColor[0]);
-        //cube.setVec3("lightPos", &lightPos[0]);
-        cube.setVec3("lightPos", ca.cameraPos());
+        for (int i = 0; i < 4; ++i)
+        {
+            sprintf(buf, "pointLights[%d].position", i);
+            cube.setVec3(buf, glm::value_ptr(pointLightPositions[i]));
+            sprintf(buf, "pointLights[%d].ambient", i);
+            cube.setVec3(buf, 0.05f, 0.05f, 0.05f);
+            sprintf(buf, "pointLights[%d].diffuse", i);
+            cube.setVec3(buf, 0.8f, 0.8f, 0.8f);
+            sprintf(buf, "pointLights[%d].specular", i);
+            cube.setVec3(buf, 1.0f, 1.0f, 1.0f);
+            sprintf(buf, "pointLights[%d].constant", i);
+            cube.setFloat(buf, 1.0f);
+            sprintf(buf, "pointLights[%d].linear", i);
+            cube.setFloat(buf, 0.09f);
+            sprintf(buf, "pointLights[%d].quadratic", i);
+            cube.setFloat(buf, 0.032f);
+        }
 
-        for (int i = 0; i < 10; i++)
+        cube.setVec3("spotLight.position", ca.cameraPos());
+        cube.setVec3("spotLight.direction", ca.cameraFront());
+        cube.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        cube.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        cube.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        cube.setFloat("spotLight.constant", 1.0f);
+        cube.setFloat("spotLight.linear", 0.09);
+        cube.setFloat("spotLight.quadratic", 0.032);
+        cube.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        cube.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+        for (int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); i++)
         {
             model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
@@ -328,13 +360,15 @@ int main(int argc, char **argv)
             cube.paintTriangles(1, 36);
         }
 
-        lightModel = glm::translate(glm::mat4(1.0f), lightPos);
-        lightModel = glm::scale(lightModel, glm::vec3(0.3f));
-        mvp = projection * view * lightModel;
-        light.use();
-        light.setMat4("modViewProj", &mvp[0][0]);
-        light.paintTriangles(1, 12);
-
+        for (unsigned int i = 0; i < sizeof(pointLightPositions) / sizeof(glm::vec3); i++)
+        {
+            lightModel = glm::translate(glm::mat4(1.0f), pointLightPositions[i]);
+            lightModel = glm::scale(lightModel, glm::vec3(0.2f));
+            mvp = projection * view * lightModel;
+            light.use();
+            light.setMat4("modViewProj", &mvp[0][0]);
+            light.paintTriangles(1, 12);
+        }
         //glfwSwapInterval(1);
         glfwSwapBuffers(window);
         glfwPollEvents();

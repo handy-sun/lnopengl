@@ -44,9 +44,19 @@ void GLManager::setInt1(const char *varName, int index)
     glUniform1i(glGetUniformLocation(m_programID, varName), index);
 }
 
+void GLManager::setFloat(const char *varName, float val)
+{
+    glUniform1f(glGetUniformLocation(m_programID, varName), val);
+}
+
 void GLManager::setVec3(const char *varName, const float *ptr)
 {
     glUniform3fv(glGetUniformLocation(m_programID, varName), 1, ptr);
+}
+
+void GLManager::setVec3(const char *varName, float v0, float v1, float v2)
+{
+    glUniform3f(glGetUniformLocation(m_programID, varName), v0, v1, v2);
 }
 
 void GLManager::setMat4(const char *varName, const float *ptr)
@@ -194,16 +204,13 @@ void GLManager::paintTriangles(int steps, int onceCount)
 
     if (m_ebo != 0)
     {
-        for (int i = 0; i < steps; ++i)
-        {            
-            glDrawElements(GL_TRIANGLES, onceCount, GL_UNSIGNED_INT, reinterpret_cast<void *>(onceCount * i * sizeof(GLuint)));
-        }
+        for (int i = 0; i < steps; ++i)           
+            glDrawElements(GL_TRIANGLES, onceCount, GL_UNSIGNED_INT,
+                           reinterpret_cast<void *>(onceCount * i * sizeof(GLuint)));
     }
     else
     {
         for (int i = 0; i < steps; ++i)
-        {
             glDrawArrays(GL_TRIANGLE_FAN, i * onceCount, onceCount);
-        }
     }
 }

@@ -13,7 +13,9 @@ public:
 
     void use();
     void setInt1(const char *varName, int index);
+    void setFloat(const char *varName, float val);
     void setVec3(const char *varName, const float *ptr);
+    void setVec3(const char *varName, float v0, float v1, float v2);
     void setMat4(const char *varName, const float *ptr);
     void readShaderFile(const char *vertexPath, const char *fragmentPath);
     void setVertexArray(int location, int vertStep, float *vertices, int vertSize);
