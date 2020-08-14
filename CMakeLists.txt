@@ -43,6 +43,7 @@ set(MAIN_LIST
     two_triangle2rect
     texture
     importModel
+    sample
 )
 
 list(GET MAIN_LIST 4 SRC_FILE)
@@ -54,6 +55,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${EXE_NAME})
 
 target_link_libraries(${PROJECT_NAME} ${GLFW_LIBLIST} 
     assimp.dll
+    # freeglut
+    # opengl32
+    # glu32
 )
 
 #ADD_CUSTOM_TARGET(debug ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Debug ${PROJECT_SOURCE_DIR})

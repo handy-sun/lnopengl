@@ -1,6 +1,10 @@
 ﻿#ifndef GLMANAGER_H
 #define GLMANAGER_H
 
+typedef unsigned int Uint;
+
+template <class T> class vector;
+#include <vector>
 
 class GLManager
 {
@@ -28,6 +32,7 @@ private:
     unsigned int        m_vao; // 顶点数组对象
     unsigned int        m_ebo; // 索引缓冲对象
     unsigned int        m_textures[6];
+    std::vector<Uint>   m_vecTextures;
     int                 m_arrayBufferCount;
     int                 m_textureCount;
     char                m_errorLog[512];
