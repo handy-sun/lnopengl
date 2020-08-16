@@ -9,7 +9,7 @@
 
 #include "glad.h"
 #include "glfw3.h"
-#include "package/GLManager.h"
+#include "package/ShaderProgram.h"
 #include "package/firstpersoncamera.hpp"
 
 #include "glm/glm.hpp"
@@ -18,6 +18,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "package/mesh.h"
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
@@ -31,6 +32,9 @@ int main(int argc, char **argv)
 #ifndef _MSC_VER
     chdir(dirname(argv[0]));
 #endif
+    std::cerr << offsetof(Vertex, Position) << " " << offsetof(Vertex, Normal) << " " << offsetof(Vertex, TexCoords) << " "
+              << offsetof(Vertex, Tangent) << " " << offsetof(Vertex, Bitangent) << std::endl;
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -232,7 +236,7 @@ int main(int argc, char **argv)
     }
     int width, height, nrChannels;
     unsigned char *data = NULL;
-    GLManager cube, light;
+    ShaderProgram cube, light;
 
     std::string pictures[] =
     {
@@ -241,27 +245,30 @@ int main(int argc, char **argv)
     };
 
     stbi_set_flip_vertically_on_load(true);
+
     for (int i = 0; i < sizeof(pictures) / sizeof(std::string); ++i)
     {
         std::string folders("../res/");
         folders.append(pictures[i].c_str());
         data = stbi_load(folders.c_str(), &width, &height, &nrChannels, 0);
-        cube.genImageData(data, width, height, i, nrChannels);
+        cube.genImageData(data, width, height, nrChannels);
         free(data);
     }
 
-    cube.readShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag"); // 世界空间
-//    cube.readShaderFile("../shaders/viewSpace.vert", "../shaders/viewSpace.frag"); // 观察空间
-    cube.setVertexArray(0, 3, vertices, sizeof(vertices));
-    cube.setVertexArray(1, 3, colors, sizeof(colors));
-    cube.setVertexArray(2, 2, texCoords, sizeof(texCoords));
-    cube.setVertexArray(3, 3, normals, sizeof(normals));
+    cube.addShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag"); // 世界空间
+//    cube.genVertexArray();
+//    cube.addShaderFile("../shaders/viewSpace.vert", "../shaders/viewSpace.frag"); // 观察空间
+    cube.setVertexAttribute(0, 3, vertices, sizeof(vertices));
+    cube.setVertexAttribute(1, 3, colors, sizeof(colors));
+    cube.setVertexAttribute(2, 2, texCoords, sizeof(texCoords));
+    cube.setVertexAttribute(3, 3, normals, sizeof(normals));
     cube.setIndexArray(indices, sizeof(indices));
 
-    light.readShaderFile("../shaders/lightcube.vert", "../shaders/lightcube.frag");
-//    light.setVertexArray(0, 3, vertices, sizeof(vertices));
+    light.addShaderFile("../shaders/lightcube.vert", "../shaders/lightcube.frag");
+//    light.genVertexArray();
+//    light.setVertexAttribute(0, 3, vertices, sizeof(vertices));
 //    light.setIndexArray(indices, sizeof(indices));
-    light.setVertexArray(0, 3, fourspace, sizeof(fourspace)); // 用四面体模拟光源
+    light.setVertexAttribute(0, 3, fourspace, sizeof(fourspace)); // 用四面体模拟光源
 
     glm::mat4 view, projection, mvp, lightModel;
     glm::mat4 cubeModel(1.0f), model(1.0f);
@@ -283,7 +290,7 @@ int main(int argc, char **argv)
     glm::vec3 pointLightPositions[] = {
         glm::vec3( 0.7f,  0.2f,  2.0f),
         glm::vec3( 2.3f, -3.3f, -4.0f),
-        glm::vec3(-4.0f,  2.0f, -12.0f),
+        glm::vec3(-4.0f,  2.0f, -7.0f),
         glm::vec3( 0.0f,  0.0f, -3.0f)
     };
     char buf[256];
@@ -338,8 +345,8 @@ int main(int argc, char **argv)
             cube.setFloat(buf, 0.032f);
         }
 
-        cube.setVec3("spotLight.position", ca.cameraPos());
-        cube.setVec3("spotLight.direction", ca.cameraFront());
+//        cube.setVec3("spotLight.position", ca.cameraPos());
+//        cube.setVec3("spotLight.direction", ca.cameraFront());
         cube.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
         cube.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
         cube.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
@@ -357,7 +364,7 @@ int main(int argc, char **argv)
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             cube.setMat4("model", &model[0][0]);
 
-            cube.paintTriangles(1, 36);
+            cube.drawTrianglesElements(1, 36);
         }
 
         for (unsigned int i = 0; i < sizeof(pointLightPositions) / sizeof(glm::vec3); i++)
@@ -367,7 +374,7 @@ int main(int argc, char **argv)
             mvp = projection * view * lightModel;
             light.use();
             light.setMat4("modViewProj", &mvp[0][0]);
-            light.paintTriangles(1, 12);
+            light.drawTrianglesArrays(1, 12);
         }
         //glfwSwapInterval(1);
         glfwSwapBuffers(window);

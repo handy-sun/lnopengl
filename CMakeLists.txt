@@ -31,10 +31,16 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw)
 set(GLFW_LIBLIST glfw ${GLFW_LIBRARIES})
 
 set(COMMON_SRC
-    src/package/GLManager.h
-    src/package/GLManager.cpp
-    src/package/firstpersoncamera.hpp
     glad/glad.c
+    src/package/shaderprogram.h
+    src/package/shaderprogram.cpp
+    src/package/firstpersoncamera.hpp
+    # src/package/model.h
+    # src/package/mesh.h
+    # src/package/shader.h
+    src/package/modelloader.h
+    src/package/modelloader.cpp
+    src/package/common.h
 )
 
 set(MAIN_LIST
@@ -43,7 +49,7 @@ set(MAIN_LIST
     two_triangle2rect
     texture
     importModel
-    sample
+    model_loading
 )
 
 list(GET MAIN_LIST 4 SRC_FILE)
@@ -55,9 +61,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${EXE_NAME})
 
 target_link_libraries(${PROJECT_NAME} ${GLFW_LIBLIST} 
     assimp.dll
-    # freeglut
-    # opengl32
-    # glu32
 )
 
 #ADD_CUSTOM_TARGET(debug ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Debug ${PROJECT_SOURCE_DIR})
