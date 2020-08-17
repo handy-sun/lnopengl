@@ -51,6 +51,7 @@ public:
     int mouseButton() const { return m_mouseButton; }
     const float *cameraPos() const { return &m_position[0]; }
     const float *cameraFront() const { return &m_front[0]; }
+    
     void setWindowSize(GLFWwindow *win, int width, int height)
     {
         if (!m_window)
