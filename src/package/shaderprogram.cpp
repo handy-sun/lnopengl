@@ -141,7 +141,7 @@ unsigned int ShaderProgram::genVertexArray()
     return VAO;
 }
 
-void ShaderProgram::setVertexAttribute(int location, int vertStep, float *vertices, int vertSize, unsigned int VAO)
+void ShaderProgram::setVertexAttribute(int location, int vertStep, const float *vertices, int vertSize, unsigned int VAO)
 {
     if (m_vecVaos.empty()) {
         genVertexArray();
@@ -200,7 +200,7 @@ void ShaderProgram::setVertexMultiAttribute(void *data, int vertSize, unsigned i
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
 }
 
-unsigned int ShaderProgram::setIndexArray(unsigned int *idx, int size)
+unsigned int ShaderProgram::setIndexArray(const unsigned int *idx, int size)
 {
     uint EBO;
     glGenBuffers(1, &EBO);

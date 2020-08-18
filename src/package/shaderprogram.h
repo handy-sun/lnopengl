@@ -30,10 +30,10 @@ public:
     void addShaderFile(const char *vertexPath, const char *fragmentPath);
 
     unsigned int genVertexArray();
-    void setVertexAttribute(int location, int vertStep, float *vertices, int vertSize, unsigned int VAO = 0);
+    void setVertexAttribute(int location, int vertStep, const float *vertices, int vertSize, unsigned int VAO = 0);
     void setVertexMultiAttribute(void *data, int vertSize, unsigned int VAO = 0);
 
-    unsigned int setIndexArray(unsigned int *vertices, int size);
+    unsigned int setIndexArray(const unsigned int *idx, int size);
     unsigned int genImageData(unsigned char *imageData, int width, int height, int channel = 3);
     void drawTrianglesElements(int steps, int onceCount);
     void drawTrianglesArrays(int steps, int onceCount);
