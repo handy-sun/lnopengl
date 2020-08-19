@@ -40,13 +40,9 @@ set(COMMON_SRC
     # src/package/model.h
     # src/package/mesh.h
     # src/package/shader.h
-    src/package/modelloader.h
-    src/package/modelloader.cpp
+    # src/package/modelloader.h
+    # src/package/modelloader.cpp
     src/package/common.h
-    src/Point.h
-    src/Point.cpp
-    src/shader.h
-    src/LoadObj.h
 )
 
 set(MAIN_LIST
@@ -68,7 +64,7 @@ add_executable(${PROJECT_NAME} "src/${SRC_FILE}.cpp" ${COMMON_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${EXE_NAME})
 
 target_link_libraries(${PROJECT_NAME} ${GLFW_LIBLIST} 
-    assimp.dll
+    # assimp.dll
 )
 
 #ADD_CUSTOM_TARGET(debug ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Debug ${PROJECT_SOURCE_DIR})

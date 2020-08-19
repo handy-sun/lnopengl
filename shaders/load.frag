@@ -5,6 +5,7 @@ in vec2 texCoord;
 in vec3 objColor;
 in vec3 objNormal;
 in vec3 FragPos;
+in float fi;
 
 struct DirLight {
     vec3 direction;
@@ -54,7 +55,7 @@ uniform SpotLight spotLight;
 uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_specular1;
 uniform sampler2D texture_height1;
-const float c_shininess = 128.0f;
+const float c_shininess = 32.0f;
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 material_diffamb, vec3 material_spec)
 {
@@ -124,12 +125,14 @@ void main()
     vec3 _diffAmb = vec3(texture(texture_diffuse1, texCoord));
     vec3 _spec = vec3(texture(texture_specular1, texCoord));
 
-    vec3 result = CalcDirLight(dirLight, norm, viewDir, _diffAmb, _spec);
+    vec3 result;
+    // result = CalcDirLight(dirLight, norm, viewDir, _diffAmb, _spec);
 
-    for (int i = 0; i < 2; i++)
-        result += CalcPointLight(pointLights[i], norm, FragPos, viewDir, _diffAmb, _spec);    
+    // for (int i = 0; i < 1; i++)
+    //     result += CalcPointLight(pointLights[i], norm, FragPos, viewDir, _diffAmb, _spec);    
 
     result += CalcSpotLight(spotLight, norm, FragPos, viewDir, _diffAmb, _spec);    
     
-    FragColor = vec4(result, 1.0);
+    // FragColor = vec4(result, 1.0);
+    FragColor = texture(texture_diffuse1, texCoord) * fi;
 }
