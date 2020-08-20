@@ -6,7 +6,6 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-
 class FirstPersonCamera
 {
 public:
@@ -41,21 +40,18 @@ public:
     }
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
-    glm::mat4 GetViewMatrix()
-    {
-        return glm::lookAt(m_position, m_position + m_front, m_up);
-    }
+    glm::mat4 GetViewMatrix() { return glm::lookAt(m_position, m_position + m_front, m_up); }
 
     float rotation() const { return m_rotation; }
     float fovZoom() const { return m_fovZoom; }
+    float deltaTime() const { return m_deltaTime; }
     int mouseButton() const { return m_mouseButton; }
     const float *cameraPos() const { return &m_position[0]; }
     const float *cameraFront() const { return &m_front[0]; }
-    
+
     void setWindowSize(GLFWwindow *win, int width, int height)
     {
-        if (!m_window)
-        {
+        if (!m_window) {
             m_window = win;
             m_windowWidth = width;
             m_windowHeight = height;
@@ -87,15 +83,13 @@ public:
     // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
     void cursorPosCallback(GLFWwindow *, double xpos, double ypos)
     {
-        if (xpos > m_windowWidth || ypos > m_windowHeight)
-        {
+        if (xpos > m_windowWidth || ypos > m_windowHeight) {
             m_isFirstMouse = true;
             m_rotation = 0.0f;
             return;
         }
 
-        if (m_isFirstMouse)
-        {
+        if (m_isFirstMouse) {
             m_lastX = xpos;
             m_lastY = ypos;
             m_isFirstMouse = false;
@@ -105,8 +99,7 @@ public:
         m_lastX = xpos;
         m_lastY = ypos;
 
-        if (m_pressedkey == GLFW_KEY_LEFT_CONTROL && m_keyMods & GLFW_MOD_CONTROL)
-        {
+        if (m_pressedkey == GLFW_KEY_LEFT_CONTROL && m_keyMods & GLFW_MOD_CONTROL) {
             m_yaw += xOffset * m_mouseSensitivity;
             m_pitch += yOffset * m_mouseSensitivity;
 
@@ -116,18 +109,13 @@ public:
                 m_pitch = -89.0f;
 
             updateCameraVectors();
-        }
-        else
-        {
-            if (m_mouseButton >= 0)
-            {
+        } else {
+            if (m_mouseButton >= 0) {
                 if (m_mouseButton == GLFW_MOUSE_BUTTON_LEFT)
                     m_rotation = 0.2f * xOffset;
                 else if (m_mouseButton == GLFW_MOUSE_BUTTON_RIGHT)
                     m_rotation = 0.2f * yOffset;
-            }
-            else
-            {
+            } else {
                 m_rotation = 0.0f;
             }
         }
@@ -135,12 +123,9 @@ public:
 
     void mouseButtonCallback(GLFWwindow *, int button, int action, int mods)
     {
-        if (action == GLFW_PRESS)
-        {
+        if (action == GLFW_PRESS) {
             m_mouseButton = button;
-        }
-        else
-        {
+        } else {
             m_mouseButton = -1;
         }
     }
@@ -151,12 +136,9 @@ public:
         (void)xOffset;
 
         m_fovZoom -= (float)yOffset;
-        if (m_fovZoom < 1.0f)
-        {
+        if (m_fovZoom < 1.0f) {
             m_fovZoom = 1.0f;
-        }
-        else if (m_fovZoom > 45.0f)
-        {
+        } else if (m_fovZoom > 45.0f) {
             m_fovZoom = 45.0f;
         }
     }
@@ -167,16 +149,16 @@ public:
         m_keyMods = mods;
     }
 
-//    typedef void (FirstPersonCamera::*pkeyCallback)(GLFWwindow *, int, int, int, int);
-//    pkeyCallback kab = &FirstPersonCamera::keyCallback;
+    //    typedef void (FirstPersonCamera::*pkeyCallback)(GLFWwindow *, int, int, int, int);
+    //    pkeyCallback kab = &FirstPersonCamera::keyCallback;
 private:
     float m_yaw;
     float m_pitch;
     float m_moveSpeed;
     float m_mouseSensitivity;
     float m_fovZoom;
-    float m_deltaTime; // 当前帧与上一帧的时间差
-    float m_lastFrame; // 上一帧的时间
+    float m_deltaTime;  // 当前帧与上一帧的时间差
+    float m_lastFrame;  // 上一帧的时间
     float m_rotation;
 
     double m_lastX;
@@ -208,4 +190,4 @@ private:
     }
 };
 
-#endif // FIRSTPERSONCAMERA_H
+#endif  // FIRSTPERSONCAMERA_H

@@ -5,7 +5,6 @@ in vec2 texCoord;
 in vec3 objColor;
 in vec3 objNormal;
 in vec3 FragPos;
-in float fi;
 
 struct DirLight {
     vec3 direction;
@@ -126,13 +125,12 @@ void main()
     vec3 _spec = vec3(texture(texture_specular1, texCoord));
 
     vec3 result;
-    // result = CalcDirLight(dirLight, norm, viewDir, _diffAmb, _spec);
+    result = CalcDirLight(dirLight, norm, viewDir, _diffAmb, _spec);
 
-    // for (int i = 0; i < 1; i++)
-    //     result += CalcPointLight(pointLights[i], norm, FragPos, viewDir, _diffAmb, _spec);    
+    for (int i = 0; i < 2; i++)
+        result += CalcPointLight(pointLights[i], norm, FragPos, viewDir, _diffAmb, _spec);    
 
     result += CalcSpotLight(spotLight, norm, FragPos, viewDir, _diffAmb, _spec);    
     
-    // FragColor = vec4(result, 1.0);
-    FragColor = texture(texture_diffuse1, texCoord) * fi;
+    FragColor = vec4(result, 1.0);
 }

@@ -1,16 +1,15 @@
 ﻿/*
-*       a___d
-*       |\  |
-*       | \ |
-*       |__\|
-*       b   c
-*/
+ *       a___d
+ *       |\  |
+ *       | \ |
+ *       |__\|
+ *       b   c
+ */
+
 #ifndef SPHEREARRAY_H
 #define SPHEREARRAY_H
 
 #include <cmath>
-#include <iostream>
-#include <vector>
 
 class SphereArray
 {

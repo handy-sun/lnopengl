@@ -212,8 +212,7 @@ unsigned int ShaderProgram::setIndexArray(const unsigned int *idx, int size)
 
 unsigned int ShaderProgram::genImageData(unsigned char *imageData, int width, int height, int channel)
 {
-    uint textureId;
-    uint format;
+    uint textureId, format;
 
     if (channel == 1)
         format = GL_RED;
@@ -235,6 +234,53 @@ unsigned int ShaderProgram::genImageData(unsigned char *imageData, int width, in
     m_vecTexturesId.push_back(textureId);
     
     return textureId;
+}
+
+void ShaderProgram::drawElementWithOneTex(int indicesCount, int index)
+{
+    if (index >= m_vecTexturesId.size()) {
+        std::cout << "wrong = " << m_vecTexturesId.size() << std::endl;
+        return;
+    }
+    glActiveTexture(GL_TEXTURE0 + index);
+    glBindTexture(GL_TEXTURE_2D, m_vecTexturesId.at(index));
+    glDrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, (void *)0);
+}
+
+void ShaderProgram::drawTrianglesElements(int steps, int onceCount)
+{    
+    glUseProgram(m_programID);
+
+    for (uint _vao : m_vecVaos) {
+        glBindVertexArray(_vao);
+        for (int i = 0; i < m_vecTexturesId.size(); ++i) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, m_vecTexturesId.at(i));
+        }
+
+        for (int i = 0; i < steps; ++i) {
+            glDrawElements(GL_TRIANGLES, onceCount, GL_UNSIGNED_INT, reinterpret_cast<void *>(onceCount * i * sizeof(GLuint)));
+        }
+        glBindVertexArray(0);
+    }
+}
+
+void ShaderProgram::drawTrianglesArrays(int steps, int onceCount)
+{
+    glUseProgram(m_programID);
+
+    for (uint _vao : m_vecVaos) {
+        glBindVertexArray(_vao);
+        for (int i = 0; i < m_vecTexturesId.size(); ++i) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, m_vecTexturesId.at(i));
+        }
+
+        for (int i = 0; i < steps; ++i) {
+            glDrawArrays(GL_TRIANGLES, 0, onceCount);
+        }
+        glBindVertexArray(0);
+    }
 }
 
 void ShaderProgram::drawModels()
@@ -277,42 +323,6 @@ void ShaderProgram::drawModels()
             glBindTexture(GL_TEXTURE_2D, _tex.id);
         }
         glDrawElements(GL_TRIANGLES, m_vecEboSize.at(index), GL_UNSIGNED_INT, (void *)0);
-        glBindVertexArray(0);
-    }
-}
-
-void ShaderProgram::drawTrianglesElements(int steps, int onceCount)
-{    
-    glUseProgram(m_programID);
-
-    for (uint _vao : m_vecVaos) {
-        glBindVertexArray(_vao);
-        for (int i = 0; i < m_vecTexturesId.size(); ++i) {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, m_vecTexturesId[i]);
-        }
-
-        for (int i = 0; i < steps; ++i) {
-            glDrawElements(GL_TRIANGLES, onceCount, GL_UNSIGNED_INT, reinterpret_cast<void *>(onceCount * i * sizeof(GLuint)));
-        }
-        glBindVertexArray(0);
-    }
-}
-
-void ShaderProgram::drawTrianglesArrays(int steps, int onceCount)
-{
-    glUseProgram(m_programID);
-
-    for (uint _vao : m_vecVaos) {
-        glBindVertexArray(_vao);
-        for (int i = 0; i < m_vecTexturesId.size(); ++i) {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, m_vecTexturesId[i]);
-        }
-
-        for (int i = 0; i < steps; ++i) {
-            glDrawArrays(GL_TRIANGLES, 0, onceCount);
-        }
         glBindVertexArray(0);
     }
 }

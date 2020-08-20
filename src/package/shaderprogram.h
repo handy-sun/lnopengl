@@ -35,6 +35,7 @@ public:
 
     unsigned int setIndexArray(const unsigned int *idx, int size);
     unsigned int genImageData(unsigned char *imageData, int width, int height, int channel = 3);
+    void drawElementWithOneTex(int indicesCount, int index);
     void drawTrianglesElements(int steps, int onceCount);
     void drawTrianglesArrays(int steps, int onceCount);
     void drawModels();
