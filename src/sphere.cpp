@@ -64,7 +64,7 @@ int main(int argc, char **argv)
     }
     ca.setWindowSize(window, screenWidth, screenHeight);
 
-    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *, int width, int height){ glViewport(0, 0, width, height); });
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow *_, int width, int height){ glViewport(0, 0, width, height); ca.setWindowSize(_, width, height); });
     glfwSetKeyCallback(window, [](GLFWwindow *_, int key, int scancode, int action, int mods){ ca.keyCallback(_, key, scancode, action, mods); });
     glfwSetCursorPosCallback(window, [](GLFWwindow *_,  double xpos, double ypos){ ca.cursorPosCallback(_, xpos, ypos); });
     glfwSetMouseButtonCallback(window, [](GLFWwindow *_, int button, int action, int mods){ ca.mouseButtonCallback(_, button, action, mods); });
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 
         sphere.use();
         view = ca.GetViewMatrix();
-        projection = glm::perspective(glm::radians(ca.fovZoom()), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(ca.fovZoom()), ca.aspect(), 0.1f, 100.0f);
         // sun
         model = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians(sunRotation), glm::vec3(0.0f, 1.0f, 0.0f));

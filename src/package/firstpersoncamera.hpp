@@ -45,6 +45,7 @@ public:
     float rotation() const { return m_rotation; }
     float fovZoom() const { return m_fovZoom; }
     float deltaTime() const { return m_deltaTime; }
+    float aspect() const { return (float)m_windowWidth / m_windowHeight; }
     int mouseButton() const { return m_mouseButton; }
     const float *cameraPos() const { return &m_position[0]; }
     const float *cameraFront() const { return &m_front[0]; }
@@ -53,11 +54,11 @@ public:
     {
         if (!m_window) {
             m_window = win;
-            m_windowWidth = width;
-            m_windowHeight = height;
             m_lastX = width / 2;
             m_lastY = height / 2;
         }
+        m_windowWidth = width;
+        m_windowHeight = height;
     }
 
     // processes input received from any keyboard-like input system.
