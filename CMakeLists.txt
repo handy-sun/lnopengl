@@ -6,12 +6,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MODULE_PATH "{CMAKE_SOURCE_DIR}/cmake")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_DEBUG_POSTFIX "_d")
-set(PROJECT_NAME "sphere")
+set(PROJECT_NAME "depthTest")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--subsystem,windows")
 
-#find_package(OpenGL REQUIRED)
+#find_package(OpenGL REQUIRED)x
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     set(EXE_NAME "${PROJECT_NAME}_D")
 else()
@@ -53,10 +54,10 @@ set(MAIN_LIST
     importModel
     model_loading
     sphere
-    Source1
+    senior
 )
 
-list(GET MAIN_LIST 6 SRC_FILE)
+list(GET MAIN_LIST 7 SRC_FILE)
 #add_definitions(-DGLEW_STATIC)
 
 add_executable(${PROJECT_NAME} "src/${SRC_FILE}.cpp" ${COMMON_SRC})

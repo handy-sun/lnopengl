@@ -18,7 +18,6 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include "package/mesh.h"
 
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
@@ -32,9 +31,6 @@ int main(int argc, char **argv)
 #ifndef _MSC_VER
     chdir(dirname(argv[0]));
 #endif
-    std::cerr << offsetof(Vertex, Position) << " " << offsetof(Vertex, Normal) << " " << offsetof(Vertex, TexCoords) << " "
-              << offsetof(Vertex, Tangent) << " " << offsetof(Vertex, Bitangent) << std::endl;
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

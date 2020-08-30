@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
     int width, height, nrChannels;
     unsigned char *data;
-    string pictures[] = {  "sun.jpg", "earth.jpg" };
+    string pictures[] = { "sun.jpg", "earth.jpg" };
 
     for (int i = 0; i < sizeof(pictures) / sizeof(string); ++i) {
         data = stbi_load(("../res/" + pictures[i]).c_str(), &width, &height, &nrChannels, 0);
