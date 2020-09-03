@@ -6,6 +6,7 @@
 #include <vld.h>
 #endif // _MSC_VER
 #include <cstdlib>
+#include <map>
 
 #include "glad.h"
 #include "glfw3.h"
@@ -212,6 +213,24 @@ int main(int argc, char **argv)
         2.0f, 2.0f	
     };
 
+    float tranVertices[] = {
+        0.0f,  0.5f,  0.0f,
+        0.0f, -0.5f,  0.0f,
+        1.0f, -0.5f,  0.0f,
+        1.0f,  0.5f,  0.0f,
+    };
+
+    float tranTex[] = {
+        0.0f,  0.0f,
+        0.0f,  1.0f,
+        1.0f,  1.0f,
+        1.0f,  0.0f
+    };
+
+    unsigned int tranIndices[] = {
+        0, 1, 2, 0, 2, 3
+    };
+
     const char *vtCode = {
         "#version 330 core\n"
         "layout (location = 0) in vec3 aPos;\n"
@@ -258,33 +277,30 @@ int main(int argc, char **argv)
 
     int width, height, nrChannels;
     unsigned char *data = NULL;
-    ShaderProgram cube, floor, singleColor;
-
-    std::string pictures[] =
-    {
-        "container2.png",
-        "container2_specular.png"     
-    };
+    ShaderProgram cube, floor, singleColor, tranwindow;
 
     cube.addShaderSourceCode(vtCode, frCode);
     cube.genVertexArray();
     cube.setVertexAttribute(0, 3, vertices, sizeof(vertices));
     cube.setVertexAttribute(1, 2, texCoords, sizeof(texCoords));
     cube.setIndexArray(indices, sizeof(indices));
-    for (int i = 0; i < sizeof(pictures) / sizeof(std::string); ++i)
-    {
-        std::string folders("../res/");
-        folders.append(pictures[i].c_str());
-        data = stbi_load(folders.c_str(), &width, &height, &nrChannels, 0);
-        cube.genImageData(data, width, height, nrChannels);
-        free(data);
-    }
+    data = stbi_load("../res/container.jpg", &width, &height, &nrChannels, 0);
+    cube.genImageData(data, width, height, nrChannels);
+
+    tranwindow.addShaderSourceCode(vtCode, frCode);
+    tranwindow.genVertexArray();
+    tranwindow.setVertexAttribute(0, 3, tranVertices, sizeof(tranVertices));
+    tranwindow.setVertexAttribute(1, 2, tranTex, sizeof(tranTex));
+    tranwindow.setIndexArray(tranIndices, sizeof(tranIndices));
+    data = stbi_load("../res/window.png", &width, &height, &nrChannels, 0);
+    tranwindow.genImageData(data, width, height, nrChannels);
+    free(data);
 
     floor.addShaderSourceCode(vtCode, frCode);
     floor.genVertexArray();
     floor.setVertexAttribute(0, 3, floorVertex, sizeof(floorVertex));
     floor.setVertexAttribute(1, 2, floorTexCoords, sizeof(floorTexCoords));
-    data = stbi_load(("../res/" + pictures[0]).c_str(), &width, &height, &nrChannels, 0);
+    data = stbi_load("../res/brickwall.jpg", &width, &height, &nrChannels, 0);
     floor.genImageData(data, width, height, nrChannels);
     free(data);
 
@@ -293,26 +309,42 @@ int main(int argc, char **argv)
     singleColor.setVertexAttribute(0, 3, vertices, sizeof(vertices));
     singleColor.setIndexArray(indices, sizeof(indices));
 
-    float scale = 1.1f;
+    float scale = 1.05f;
     glm::mat4 view, projection, model(1.0f);
+    std::map<float, glm::vec3> mapSorted;
 
     glm::vec3 cubePositions[] = {
-        glm::vec3(1.0f, 0.0f, -1.0f),
-        glm::vec3(2.0f, 0.0f, -0.8f),
+        glm::vec3(-1.0f, 0.0f, -1.0f),
+        glm::vec3(2.0f, 0.0f, 0.0f),
     };
+
+    glm::vec3 windows[] = {
+        glm::vec3(-1.5f, 0.0f, -0.48f),
+        glm::vec3( 1.5f, 0.0f, 0.51f),
+        glm::vec3( 0.0f, 0.0f, 0.7f),
+        glm::vec3(-0.3f, 0.0f, -2.3f),
+        glm::vec3( 0.5f, 0.0f, -0.6f)
+    };
+
+    for (int i = 0; i < sizeof(windows) / sizeof(glm::vec3); i++) {
+        float distance = glm::length(ca.position() - windows[i]);
+        mapSorted[distance] = windows[i];
+    }
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    cube.use();
+ 
     cube.setInt1("sampDiffuse", 0);
     floor.setInt1("sampDiffuse", 0);
+    tranwindow.setInt1("sampDiffuse", 0);
 
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         ca.ProcessWindowEvent(glfwGetTime());
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -325,8 +357,7 @@ int main(int argc, char **argv)
         cube.setMat4("projection", &projection[0][0]);
         cube.setMat4("view", &view[0][0]);
 
-        for (int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); i++)
-        {
+        for (int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); i++) {
             model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
             cube.setMat4("model", &model[0][0]);
             cube.drawTrianglesElements(1, 36);
@@ -343,11 +374,11 @@ int main(int argc, char **argv)
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00); 
         glDisable(GL_DEPTH_TEST);
+
         singleColor.use();
         singleColor.setMat4("projection", &projection[0][0]);
         singleColor.setMat4("view", &view[0][0]);
-        for (int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); i++)
-        {
+        for (int i = 0; i < sizeof(cubePositions) / sizeof(glm::vec3); i++) {
             model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
             model = glm::scale(model, glm::vec3(scale, scale, scale));
             singleColor.setMat4("model", &model[0][0]);
@@ -356,6 +387,16 @@ int main(int argc, char **argv)
         glStencilMask(0xFF);
         glStencilFunc(GL_ALWAYS, 0, 0xFF);
         glEnable(GL_DEPTH_TEST);
+
+        tranwindow.use();
+        tranwindow.setMat4("projection", &projection[0][0]);
+        tranwindow.setMat4("view", &view[0][0]);
+
+        for (auto it = mapSorted.crbegin(); it != mapSorted.crend(); ++it) {
+            model = glm::translate(glm::mat4(1.0f), it->second);              
+            tranwindow.setMat4("model", &model[0][0]);
+            tranwindow.drawTrianglesElements(1, 6);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();

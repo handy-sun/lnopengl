@@ -48,6 +48,7 @@ public:
     float aspect() const { return (float)m_windowWidth / m_windowHeight; }
     int mouseButton() const { return m_mouseButton; }
     const float *cameraPos() const { return &m_position[0]; }
+    glm::vec3 position() const { return m_position; }
     const float *cameraFront() const { return &m_front[0]; }
 
     void setWindowSize(GLFWwindow *win, int width, int height)
