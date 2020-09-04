@@ -292,7 +292,7 @@ int main(int argc, char **argv)
     tranwindow.setVertexAttribute(0, 3, tranVertices, sizeof(tranVertices));
     tranwindow.setVertexAttribute(1, 2, tranTex, sizeof(tranTex));
     tranwindow.setIndexArray(tranIndices, sizeof(tranIndices));
-    data = stbi_load("../res/window.png", &width, &height, &nrChannels, 0);
+    data = stbi_load("../res/blending_transparent_window.png", &width, &height, &nrChannels, 0);
     tranwindow.genImageData(data, width, height, nrChannels);
     free(data);
 

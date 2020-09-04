@@ -47,12 +47,11 @@ set(MAIN_LIST
     two_triangle2rect
     texture
     importModel
-    model_loading
     sphere
     senior
 )
 
-list(GET MAIN_LIST 7 SRC_FILE)
+list(GET MAIN_LIST 6 SRC_FILE)
 #add_definitions(-DGLEW_STATIC)
 
 add_executable(${PROJECT_NAME} "src/${SRC_FILE}.cpp" ${COMMON_SRC})
