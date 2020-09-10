@@ -37,16 +37,14 @@ int main(int argc, char **argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
-    {
+    if (window == NULL) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
 
     glfwMakeContextCurrent(window);
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
@@ -59,8 +57,7 @@ int main(int argc, char **argv)
     glfwSetScrollCallback(window, [](GLFWwindow *_,  double xpos, double ypos){ ca.scrollCallback(_, xpos, ypos); });
     stbi_set_flip_vertically_on_load(true);
 
-    float vertices[] =
-    {
+    float vertices[] = {
         0.5f, 0.5f, 0.5f, // front
         0.5f, -0.5f, 0.5f,
         -0.5f, -0.5f, 0.5f,
@@ -92,8 +89,7 @@ int main(int argc, char **argv)
         0.5f, -0.5f, -0.5f,
     };
 
-    float fourspace[] =
-    {
+    float fourspace[] = {
         0.0f, -side, vt,
         -0.5f, -side, -side,
         0.5f, -side, -side,
@@ -111,8 +107,7 @@ int main(int argc, char **argv)
         0.0f, vt, 0.0f,
     };
 
-    unsigned int indices[] =
-    {
+    unsigned int indices[] = {
         0, 1, 3,
         1, 2, 3,
         4, 5, 7,
@@ -127,8 +122,7 @@ int main(int argc, char **argv)
         21, 22, 23
     };
 
-    float texCoords[] =
-    {
+    float texCoords[] = {
         1.0f, 1.0f,
         1.0f, 0.0f,
         0.0f, 0.0f,
@@ -160,8 +154,7 @@ int main(int argc, char **argv)
         0.0f, 1.0f,
     };
 
-    float normals[] =
-    {
+    float normals[] = {
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
@@ -193,8 +186,7 @@ int main(int argc, char **argv)
         0.0f, -1.0f, 0.0f,
     };
 
-    float floorVertex[] = 
-    {
+    float floorVertex[] = {
          5.0f, -0.5f,  5.0f,
         -5.0f, -0.5f,  5.0f,
         -5.0f, -0.5f, -5.0f,
@@ -203,8 +195,7 @@ int main(int argc, char **argv)
          5.0f, -0.5f, -5.0f,
     };
 
-    float floorTexCoords[] = 
-    {
+    float floorTexCoords[] = {
         2.0f, 0.0f,
         0.0f, 0.0f,
         0.0f, 2.0f,
@@ -227,8 +218,25 @@ int main(int argc, char **argv)
         1.0f,  0.0f
     };
 
-    unsigned int tranIndices[] = {
-        0, 1, 2, 0, 2, 3
+    unsigned int tranIndices[] = { 0, 1, 2, 0, 2, 3 };
+
+    float quadVertices[] = { 
+        -1.0f,  1.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f,
+         1.0f, -1.0f, 0.0f,
+
+        -1.0f,  1.0f, 0.0f,
+         1.0f, -1.0f, 0.0f,
+         1.0f,  1.0f, 0.0f,
+    };
+
+    float quadTex[] = {
+        0.0f, 1.0f,
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 0.0f,
+        1.0f, 1.0f
     };
 
     const char *vtCode = {
@@ -277,7 +285,7 @@ int main(int argc, char **argv)
 
     int width, height, nrChannels;
     unsigned char *data = NULL;
-    ShaderProgram cube, floor, singleColor, tranwindow;
+    ShaderProgram cube, floor, singleColor, tranwindow, quad;
 
     cube.addShaderSourceCode(vtCode, frCode);
     cube.genVertexArray();
@@ -309,6 +317,15 @@ int main(int argc, char **argv)
     singleColor.setVertexAttribute(0, 3, vertices, sizeof(vertices));
     singleColor.setIndexArray(indices, sizeof(indices));
 
+    quad.addShaderFile("../shaders/framebuffer.vert", "../shaders/framebuffer.frag");
+    quad.genVertexArray();
+    quad.setVertexAttribute(0, 3, quadVertices, sizeof(quadVertices));
+    quad.setVertexAttribute(1, 2, quadTex, sizeof(quadTex));
+    quad.use();
+    quad.setInt1("screenTexture", 0);
+    unsigned int fbo = quad.genFrameBuffer();
+    quad.genRenderBuffer(screenWidth, screenHeight);
+
     float scale = 1.05f;
     glm::mat4 view, projection, model(1.0f);
     std::map<float, glm::vec3> mapSorted;
@@ -330,24 +347,28 @@ int main(int argc, char **argv)
         float distance = glm::length(ca.position() - windows[i]);
         mapSorted[distance] = windows[i];
     }
+// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
- 
+    
     cube.setInt1("sampDiffuse", 0);
     floor.setInt1("sampDiffuse", 0);
     tranwindow.setInt1("sampDiffuse", 0);
-
+    
     while (!glfwWindowShouldClose(window)) {
         ca.ProcessWindowEvent(glfwGetTime());
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        
+        glEnable(GL_DEPTH_TEST);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT /* | GL_STENCIL_BUFFER_BIT */);
+        
         view = ca.GetViewMatrix();
         projection = glm::perspective(glm::radians(ca.fovZoom()), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
         
@@ -370,7 +391,7 @@ int main(int argc, char **argv)
         floor.setMat4("view", &view[0][0]);
         floor.setMat4("model", &model[0][0]);
         floor.drawTrianglesArrays(1, 6);
-
+#if 1
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00); 
         glDisable(GL_DEPTH_TEST);
@@ -397,6 +418,14 @@ int main(int argc, char **argv)
             tranwindow.setMat4("model", &model[0][0]);
             tranwindow.drawTrianglesElements(1, 6);
         }
+#endif
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDisable(GL_DEPTH_TEST); 
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        quad.use();
+        quad.drawTrianglesArrays(1, 6);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

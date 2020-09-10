@@ -33,6 +33,8 @@ public:
     void setVertexAttribute(int location, int vertStep, const float *vertices, int vertSize, unsigned int VAO = 0);
     void setVertexMultiAttribute(void *data, int vertSize, unsigned int VAO = 0);
 
+    unsigned int genFrameBuffer();
+    unsigned int genRenderBuffer(int width, int height);
     unsigned int setIndexArray(const unsigned int *idx, int size);
     unsigned int genImageData(unsigned char *imageData, int width, int height, int channel = 3);
     void drawElementWithOneTex(int indicesCount, int index);
