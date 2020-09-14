@@ -24,8 +24,6 @@ const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
 
 FirstPersonCamera ca(0.0f, 0.0f, 3.0f);
-const float vt = sqrt(3.0) / 3.0f;
-const float side = sqrt(3.0) / 6.0f;
 
 int main(int argc, char **argv)
 {
@@ -87,24 +85,6 @@ int main(int argc, char **argv)
         -0.5f, -0.5f, 0.5f,
         0.5f, -0.5f, 0.5f,
         0.5f, -0.5f, -0.5f,
-    };
-
-    float fourspace[] = {
-        0.0f, -side, vt,
-        -0.5f, -side, -side,
-        0.5f, -side, -side,
-
-        0.0f, -side, vt,
-        -0.5f, -side, -side,
-        0.0f, vt, 0.0f,
-
-        -0.5f, -side, -side,
-        0.5f, -side, -side,
-        0.0f, vt, 0.0f,
-
-        0.0f, -side, vt,
-        0.5f, -side, -side,
-        0.0f, vt, 0.0f,
     };
 
     unsigned int indices[] = {
@@ -347,7 +327,6 @@ int main(int argc, char **argv)
         float distance = glm::length(ca.position() - windows[i]);
         mapSorted[distance] = windows[i];
     }
-// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_STENCIL_TEST);
