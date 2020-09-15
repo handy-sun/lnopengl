@@ -9,7 +9,8 @@
 
 #include "glad.h"
 #include "glfw3.h"
-#include "package/ShaderProgram.h"
+#include "package/shaderprogram.h"
+#include "package/spherearray.hpp"
 #include "package/firstpersoncamera.hpp"
 
 #include "glm/glm.hpp"
@@ -232,7 +233,8 @@ int main(int argc, char **argv)
     }
     int width, height, nrChannels;
     unsigned char *data = NULL;
-    ShaderProgram cube, light;
+    ShaderProgram cube, light, sphere;
+    SphereArray sa(30, 60);
 
     std::string pictures[] =
     {
@@ -265,6 +267,14 @@ int main(int argc, char **argv)
 //    light.setVertexAttribute(0, 3, vertices, sizeof(vertices));
 //    light.setIndexArray(indices, sizeof(indices));
     light.setVertexAttribute(0, 3, fourspace, sizeof(fourspace)); // 用四面体模拟光源
+
+    sphere.addShaderFile("../shaders/rectTexture.vert", "../shaders/rectTexture.frag");
+    sphere.genVertexArray();
+    sphere.setVertexAttribute(0, 3, sa.vertices(), sa.verticeCount() * sizeof(float));
+    sphere.setVertexAttribute(1, 3, sa.vertices(), sa.verticeCount() * sizeof(float));
+    // sphere.setVertexAttribute(2, 2, sa.texCoords(), sa.texCoordCount() * sizeof(float));
+    sphere.setVertexAttribute(3, 3, sa.vertices(), sa.verticeCount() * sizeof(float));
+    sphere.setIndexArray(sa.indices(), sa.indiceCount() * sizeof(GLuint));
 
     glm::mat4 view, projection, mvp, lightModel;
     glm::mat4 cubeModel(1.0f), model(1.0f);
@@ -362,6 +372,48 @@ int main(int argc, char **argv)
 
             cube.drawTrianglesElements(1, 36);
         }
+
+        sphere.use();
+        sphere.setFloat("material.shininess", 32.0f);
+        sphere.setVec3("viewPos", ca.cameraPos());
+        sphere.setMat4("projection", &projection[0][0]);
+        sphere.setMat4("view", &view[0][0]);
+        sphere.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        sphere.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+        sphere.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        sphere.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+        for (int i = 0; i < 4; ++i)
+        {
+            sprintf(buf, "pointLights[%d].position", i);
+            sphere.setVec3(buf, glm::value_ptr(pointLightPositions[i]));
+            sprintf(buf, "pointLights[%d].ambient", i);
+            sphere.setVec3(buf, 0.05f, 0.05f, 0.05f);
+            sprintf(buf, "pointLights[%d].diffuse", i);
+            sphere.setVec3(buf, 0.8f, 0.8f, 0.8f);
+            sprintf(buf, "pointLights[%d].specular", i);
+            sphere.setVec3(buf, 1.0f, 1.0f, 1.0f);
+            sprintf(buf, "pointLights[%d].constant", i);
+            sphere.setFloat(buf, 1.0f);
+            sprintf(buf, "pointLights[%d].linear", i);
+            sphere.setFloat(buf, 0.09f);
+            sprintf(buf, "pointLights[%d].quadratic", i);
+            sphere.setFloat(buf, 0.032f);
+        }
+
+        sphere.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        sphere.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        sphere.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        sphere.setFloat("spotLight.constant", 1.0f);
+        sphere.setFloat("spotLight.linear", 0.09);
+        sphere.setFloat("spotLight.quadratic", 0.032);
+        sphere.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        sphere.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+            
+        model = glm::translate(glm::mat4(1.0f), glm::vec3(-0.5f, -2.2f, -0.5f));
+        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+        sphere.setMat4("model", &model[0][0]);
+        sphere.drawTrianglesElements(1, sa.indiceCount() * sizeof(GLuint));
 
         for (unsigned int i = 0; i < sizeof(pointLightPositions) / sizeof(glm::vec3); i++)
         {

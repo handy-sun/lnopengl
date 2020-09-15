@@ -20,6 +20,7 @@
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include "package/modelloader.h"
+#include "package/spherearray.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -273,7 +274,8 @@ int main(int argc, char **argv)
         "{\n"
         "    float ratio = 1.00 / 1.52;\n"
         "    vec3 I = normalize(Position - cameraPos);\n"
-        "    vec3 R = refract(I, normalize(Normal), ratio);\n"
+        // "    vec3 R = refract(I, normalize(Normal), ratio);\n"
+        "    vec3 R = reflect(I, normalize(Normal));\n"
         "    FragColor = vec4(texture(skybox, R).rgb, 1.0);\n"
         "}\n"
     };
@@ -289,7 +291,8 @@ int main(int argc, char **argv)
         (char *)"../res/skybox/back.jpg"
     };
     glm::mat4 view, projection, model(1.0f);
-    ShaderProgram cube, nano, skyboxShader;
+    ShaderProgram cube, nano, skyboxShader, sphere;
+    SphereArray sa(30, 60);
 
     ModelLoader loader;
     nano.addShaderSourceCode(vtCode, frCode);
@@ -303,7 +306,15 @@ int main(int argc, char **argv)
     cube.setIndexArray(indices, sizeof(indices));
     data = stbi_load("../res/container.jpg", &width, &height, &nrChannels, 0);
     cube.genImageData(data, width, height, nrChannels);
-    cube.setInt1("sampDiffuse", 0);
+    cube.setInt1("skybox", 0);
+
+    sphere.addShaderSourceCode(vtCode, frCode);
+    sphere.genVertexArray();
+    sphere.setVertexAttribute(0, 3, sa.vertices(), sa.verticeCount() * sizeof(float));
+    sphere.setVertexAttribute(1, 3, sa.vertices(), sa.verticeCount() * sizeof(float));
+    // sphere.setVertexAttribute(2, 2, sa.texCoords(), sa.texCoordCount() * sizeof(float));
+    sphere.setIndexArray(sa.indices(), sa.indiceCount() * sizeof(GLuint));
+    sphere.setInt1("skybox", 0);
 
     stbi_set_flip_vertically_on_load(false);
     GLuint cubeMapVAO, cubeMapTexId;
@@ -341,6 +352,15 @@ int main(int argc, char **argv)
         nano.setMat4("model", &model[0][0]);
         nano.setVec3("cameraPos", ca.cameraPos());
         nano.drawModels();
+
+        model = glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+        sphere.use();
+        sphere.setMat4("projection", &projection[0][0]);
+        sphere.setMat4("view", &view[0][0]);
+        sphere.setMat4("model", &model[0][0]);
+        sphere.setVec3("cameraPos", ca.cameraPos());
+        sphere.drawTrianglesElements(1, sa.indiceCount() * sizeof(GLuint));
 
         glDepthFunc(GL_LEQUAL);  
         skyboxShader.use();
