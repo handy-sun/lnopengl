@@ -1,9 +1,10 @@
-﻿/*
- *       a___d
+﻿/* Counter-ClockWise Triangle
+ *
+ *       c___d
  *       |\  |
  *       | \ |
  *       |__\|
- *       b   c
+ *       a   b
  */
 
 #ifndef SPHEREARRAY_H
@@ -74,12 +75,19 @@ private:
         }
         // 索引坐标
         for (int i = 0; i < lat; ++i) {
-            for (int j = 0; j < lon; ++j) {                 
+            for (int j = 0; j < lon; ++j) {     
                 m_indices[idx++] = i * lonPlusOne + j; // a        
+#ifdef SPHEREARRAY_CLOCK_WISE
                 m_indices[idx++] = (i + 1) * lonPlusOne + j; // b 
                 m_indices[idx++] = i * lonPlusOne + j + 1;  // c 
                 m_indices[idx++] = i * lonPlusOne + j + 1; // c  
                 m_indices[idx++] = (i + 1) * lonPlusOne + j; // b
+#else     
+                m_indices[idx++] = i * lonPlusOne + j + 1; // b 
+                m_indices[idx++] = (i + 1) * lonPlusOne + j;  // c 
+                m_indices[idx++] = (i + 1) * lonPlusOne + j; // c  
+                m_indices[idx++] = i * lonPlusOne + j + 1; // b
+#endif
                 m_indices[idx++] = (i + 1) * lonPlusOne + j + 1; // d 
             }
         }

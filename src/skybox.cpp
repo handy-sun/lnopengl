@@ -85,35 +85,35 @@ int main(int argc, char **argv)
     glfwSetScrollCallback(window, [](GLFWwindow *_,  double xpos, double ypos){ ca.scrollCallback(_, xpos, ypos); });
     stbi_set_flip_vertically_on_load(true);
 
-    float vertices[] = {
-        0.5f, 0.5f, 0.5f, // front
+    float vertices[] = { // 三角形环绕顺序为逆时针环绕
+        -0.5f, -0.5f, 0.5f, // front
         0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, 0.5f,
+        0.5f, 0.5f, 0.5f,
         -0.5f, 0.5f, 0.5f,
 
-        -0.5f, 0.5f, -0.5f, // back
+        0.5f, -0.5f, -0.5f, // back
         -0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
         0.5f, 0.5f, -0.5f,
 
-        -0.5f, 0.5f, 0.5f, // left
+        -0.5f, -0.5f, -0.5f, // left
         -0.5f, -0.5f, 0.5f,
-        -0.5f, -0.5f, -0.5f,
-        -0.5f, 0.5f, -0.5f,
-
-        0.5f, 0.5f, -0.5f, // right
-        0.5f, -0.5f, -0.5f,
-        0.5f, -0.5f, 0.5f,
-        0.5f, 0.5f, 0.5f,
-
-        0.5f, 0.5f, -0.5f, // top
-        0.5f, 0.5f, 0.5f,
         -0.5f, 0.5f, 0.5f,
         -0.5f, 0.5f, -0.5f,
 
-        -0.5f, -0.5f, -0.5f, // bottom
+        0.5f, -0.5f, 0.5f, // right
+        0.5f, -0.5f, -0.5f,
+        0.5f, 0.5f, -0.5f,
+        0.5f, 0.5f, 0.5f,
+
+        -0.5f, 0.5f, 0.5f, // top
+        0.5f, 0.5f, 0.5f,
+        0.5f, 0.5f, -0.5f,
+        -0.5f, 0.5f, -0.5f,
+
+        0.5f, -0.5f, 0.5f, // bottom
         -0.5f, -0.5f, 0.5f,
-        0.5f, -0.5f, 0.5f,
+        -0.5f, -0.5f, -0.5f,
         0.5f, -0.5f, -0.5f,
     };
 
@@ -132,37 +132,14 @@ int main(int argc, char **argv)
         21, 22, 23
     };
 
-    float texCoords[] = {
-        1.0f, 1.0f,
-        1.0f, 0.0f,
+    float texCoords[48] = {
         0.0f, 0.0f,
-        0.0f, 1.0f,
-
-        1.0f, 1.0f,
         1.0f, 0.0f,
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-
         1.0f, 1.0f,
-        1.0f, 0.0f,
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-
-        1.0f, 1.0f,
-        1.0f, 0.0f,
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-
-        1.0f, 1.0f,
-        1.0f, 0.0f,
-        0.0f, 0.0f,
-        0.0f, 1.0f,
-
-        1.0f, 1.0f,
-        1.0f, 0.0f,
-        0.0f, 0.0f,
         0.0f, 1.0f,
     };
+    for (int i = 1; i < 6; ++i)
+        memcpy(texCoords + 8 * i, texCoords, 8 * sizeof(float));
 
     float normals[] = {
         0.0f, 0.0f, 1.0f,
@@ -274,8 +251,8 @@ int main(int argc, char **argv)
         "{\n"
         "    float ratio = 1.00 / 1.52;\n"
         "    vec3 I = normalize(Position - cameraPos);\n"
-        // "    vec3 R = refract(I, normalize(Normal), ratio);\n"
         "    vec3 R = reflect(I, normalize(Normal));\n"
+        // "    vec3 R = refract(I, normalize(Normal), ratio);\n"
         "    FragColor = vec4(texture(skybox, R).rgb, 1.0);\n"
         "}\n"
     };
@@ -325,7 +302,9 @@ int main(int argc, char **argv)
     skyboxShader.setVertexAttribute(0, 3, skyboxVertices, sizeof(skyboxVertices));
     skyboxShader.setInt1("skybox", 0);
 
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
     while (!glfwWindowShouldClose(window)) {
@@ -343,16 +322,7 @@ int main(int argc, char **argv)
         cube.setVec3("cameraPos", ca.cameraPos());
         cube.drawTrianglesElements(1, 36);
         // change depth function so depth test passes when values are equal to depth buffer's content
-
-        model = glm::translate(model, glm::vec3(1.5f, -1.5f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-        nano.use();
-        nano.setMat4("projection", &projection[0][0]);
-        nano.setMat4("view", &view[0][0]);
-        nano.setMat4("model", &model[0][0]);
-        nano.setVec3("cameraPos", ca.cameraPos());
-        nano.drawModels();
-
+        
         model = glm::translate(glm::mat4(1.0f), glm::vec3(3.3f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
         sphere.use();
@@ -361,6 +331,15 @@ int main(int argc, char **argv)
         sphere.setMat4("model", &model[0][0]);
         sphere.setVec3("cameraPos", ca.cameraPos());
         sphere.drawTrianglesElements(1, sa.indiceCount() * sizeof(GLuint));
+
+        model = glm::translate(glm::mat4(1.0f), glm::vec3(1.5f, -1.5f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+        nano.use();
+        nano.setMat4("projection", &projection[0][0]);
+        nano.setMat4("view", &view[0][0]);
+        nano.setMat4("model", &model[0][0]);
+        nano.setVec3("cameraPos", ca.cameraPos());
+        nano.drawModels();
 
         glDepthFunc(GL_LEQUAL);  
         skyboxShader.use();
