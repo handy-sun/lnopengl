@@ -132,6 +132,50 @@ void ShaderProgram::addShaderFile(const char *vertexPath, const char *fragmentPa
     addShaderSourceCode(vertexCode.c_str(), fragmentCode.c_str());
 }
 
+void ShaderProgram::addGeometryShaderSourceCode(const char *geoCode)
+{
+    if (m_programID == 0)
+        return;
+
+    unsigned int geoShader;
+    int success;
+
+    geoShader = glCreateShader(GL_GEOMETRY_SHADER);
+    glShaderSource(geoShader, 1, &geoCode, NULL);
+    glCompileShader(geoShader);
+    glGetShaderiv(geoShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(geoShader, 512, NULL, m_errorLog);
+        std::cerr << "Geometry Shader Compiles Failed: " << m_errorLog << std::endl;
+    }
+    glAttachShader(m_programID, geoShader);
+    glLinkProgram(m_programID);
+}
+
+void ShaderProgram::addGeometryShaderFile(const char *geoPath)
+{
+    if (m_programID == 0)
+        return;
+        
+    std::string geoCode;
+    std::ifstream geoFile;
+    std::stringstream geoStream;
+
+    geoFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+    try {
+        geoFile.open(geoPath);
+        geoStream << geoFile.rdbuf();
+        geoFile.close();
+        geoCode = geoStream.str();
+    }
+    catch (std::ifstream::failure e) {
+        std::cerr << "ERROR::GEOMETRY_SHADER::FILE_NOT_SUCCESFULLY_READ" << e.what() << std::endl;
+    }
+
+    addGeometryShaderSourceCode(geoCode.c_str());
+}
+
 unsigned int ShaderProgram::genVertexArray()
 {
     uint VAO;

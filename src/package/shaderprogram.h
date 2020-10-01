@@ -28,6 +28,8 @@ public:
     void setMat4(const char *varName, const float *ptr);
     void addShaderSourceCode(const char *vShaderCode, const char *fShaderCode);
     void addShaderFile(const char *vertexPath, const char *fragmentPath);
+    void addGeometryShaderSourceCode(const char *geoCode);
+    void addGeometryShaderFile(const char *geoPath);
 
     unsigned int genVertexArray();
     void setVertexAttribute(int location, int vertStep, const float *vertices, int vertSize, unsigned int VAO = 0);
