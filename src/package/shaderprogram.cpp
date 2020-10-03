@@ -56,6 +56,71 @@ void ShaderProgram::setMat4(const char *varName, const float *ptr)
     glUniformMatrix4fv(glGetUniformLocation(m_programID, varName), 1, GL_FALSE, ptr);
 }
 
+void ShaderProgram::addShaderSourceCode(const char *code, unsigned int type)
+{
+    unsigned int shader;
+    int success;
+
+    shader = glCreateShader(type);
+    glShaderSource(shader, 1, &code, NULL);
+    glCompileShader(shader);
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, NULL, m_errorLog);
+        switch (type) {
+        case GL_VERTEX_SHADER:
+            std::cerr << "Vertex Shader Compiles Failed: " << m_errorLog << std::endl;
+            break;
+        case GL_FRAGMENT_SHADER:
+            std::cerr << "Fragment Shader Compiles Failed: " << m_errorLog << std::endl;
+            break;
+        case GL_GEOMETRY_SHADER:
+            std::cerr << "Geometry Shader Compiles Failed: " << m_errorLog << std::endl;
+            break;        
+        default:
+            std::cerr << "None Error" << m_errorLog << std::endl;
+            break;
+        }
+    } else {
+        m_vecShaderId.push_back(shader);
+    }
+}
+
+void ShaderProgram::addShaderFile(const char *path, unsigned int type)
+{   
+    std::string code;
+    std::ifstream inFile;
+    std::stringstream strStream;
+
+    inFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+    try {
+        inFile.open(path);
+        strStream << inFile.rdbuf();
+        inFile.close();
+        code = strStream.str();
+    }
+    catch (std::ifstream::failure e) {
+        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << e.what() << std::endl;
+    }
+    addShaderSourceCode(code.c_str(), type);
+}
+
+void ShaderProgram::linkShaderProgram()
+{
+    m_programID = glCreateProgram();
+    int success;
+    for (unsigned int shaderId : m_vecShaderId) {
+        glAttachShader(m_programID, shaderId);
+    }
+    glLinkProgram(m_programID);
+    glGetProgramiv(m_programID, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(m_programID, 512, NULL, m_errorLog);
+        std::cerr << "Shader Program Link Failed: " << m_errorLog << std::endl;
+    }
+}
+
 void ShaderProgram::addShaderSourceCode(const char *vShaderCode, const char *fShaderCode)
 {
     if (m_programID != 0)

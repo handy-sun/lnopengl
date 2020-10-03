@@ -26,8 +26,14 @@ public:
     void setVec3(const char *varName, const float *ptr);
     void setVec3(const char *varName, float v0, float v1, float v2);
     void setMat4(const char *varName, const float *ptr);
+    // 新
+    void addShaderSourceCode(const char *code, unsigned int type);
+    void addShaderFile(const char *path, unsigned int type);
+    void linkShaderProgram();
+    // 旧
     void addShaderSourceCode(const char *vShaderCode, const char *fShaderCode);
     void addShaderFile(const char *vertexPath, const char *fragmentPath);
+
     void addGeometryShaderSourceCode(const char *geoCode);
     void addGeometryShaderFile(const char *geoPath);
 
@@ -47,6 +53,7 @@ public:
 
 private:
     unsigned int        m_programID;
+    VectorUint          m_vecShaderId;
     VectorUint          m_vecVaos; // 顶点数组对象
     VectorUint          m_vecEboSize;
     VectorUint          m_vecTexturesId;
