@@ -55,9 +55,10 @@ set(MAIN_LIST
     senior
     skybox
     geometryshader
+    instancing
 )
 
-list(GET MAIN_LIST 8 SRC_FILE)
+list(GET MAIN_LIST 9 SRC_FILE)
 #add_definitions(-DGLEW_STATIC)
 
 add_executable(${PROJECT_NAME} "src/${SRC_FILE}.cpp" ${COMMON_SRC})

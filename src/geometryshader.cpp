@@ -26,7 +26,7 @@
 const unsigned int screenWidth = 800;
 const unsigned int screenHeight = 600;
 
-FirstPersonCamera ca(0.0f, 0.0f, 3.0f);
+FirstPersonCamera ca(0.0f, 1.5f, 3.0f);
 
 unsigned int loadCubemap(const char * faces[])
 {
@@ -83,28 +83,12 @@ int main(int argc, char **argv)
     glfwSetScrollCallback(window, [](GLFWwindow *_,  double xpos, double ypos){ ca.scrollCallback(_, xpos, ypos); });
     stbi_set_flip_vertically_on_load(true);
 
-    float points[] = {
-        -0.5f,  0.5f, // 左上
-        0.5f,  0.5f, // 右上
-        0.5f, -0.5f, // 右下
-        -0.5f, -0.5f, // 左下
-    };
-
-    float colors[] = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 
-        0.0f, 0.0f, 1.0f, 
-        1.0f, 1.0f, 0.0f 
-    };
-
     const char *vtCode = {
         "#version 330 core\n"
         "layout (location = 0) in vec3 aPos;\n"
         "layout (location = 2) in vec2 aTexCoords;\n"
         "\n"
-        "out VS_OUT {\n"
-        "    vec2 texCoords;\n"
-        "} vs_out;\n"
+        "out vec2 TexCoords;\n"
         "\n"
         "uniform mat4 projection;\n"
         "uniform mat4 view;\n"
@@ -112,7 +96,7 @@ int main(int argc, char **argv)
         "\n"
         "void main()\n"
         "{\n"
-        "    vs_out.texCoords = aTexCoords;\n"
+        "    TexCoords = aTexCoords;\n"
         "    gl_Position = projection * view * model * vec4(aPos, 1.0); \n"
         "}\n"
     };
@@ -131,19 +115,83 @@ int main(int argc, char **argv)
         "}\n"
     };
 
-    ModelLoader loader;
+////////////////////////////////////////////////////////
+    const char *vtNor = {
+        "#version 330 core\n"
+        "layout (location = 0) in vec3 aPos;\n"
+        "layout (location = 1) in vec3 aNormal;\n"
+        "\n"
+        "out VS_OUT {\n"
+        "    vec3 normal;\n"
+        "} vs_out;\n"
+        "\n"
+        "uniform mat4 view;\n"
+        "uniform mat4 model;\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "    mat3 normalMatrix = mat3(transpose(inverse(view * model)));\n"
+        "    vs_out.normal = vec3(vec4(normalMatrix * aNormal, 0.0));\n"
+        "    gl_Position = view * model * vec4(aPos, 1.0); \n"
+        "}\n"
+    };
 
-    ShaderProgram gshader;
+    const char *frNor = {
+        "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "    FragColor = vec4(1.0, 1.0, 0.0, 1.0);\n"
+        "}\n"
+    };
+
+    const char *geoNor = {
+        "#version 330 core\n"
+        "layout (triangles) in;\n"
+        "layout (line_strip, max_vertices = 6) out;\n"
+        "\n"
+        "in VS_OUT {\n"
+        "    vec3 normal;\n"
+        "} gs_in[];\n"
+        "\n"
+        "const float MAGNITUDE = 0.008;\n"
+        "\n"
+        "uniform mat4 projection;\n"
+        "\n"
+        "void GenerateLine(int index)\n"
+        "{\n"
+        "    gl_Position = projection * gl_in[index].gl_Position;\n"
+        "    EmitVertex();\n"
+        "    gl_Position = projection * (gl_in[index].gl_Position + vec4(gs_in[index].normal, 0.0) * MAGNITUDE);\n"
+        "    EmitVertex();\n"
+        "    EndPrimitive();\n"
+        "}\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "    GenerateLine(0);\n"
+        "    GenerateLine(1);\n"
+        "    GenerateLine(2);\n"
+        "}\n"
+    };
+
+    ModelLoader loader, norLoader;
+
+    ShaderProgram gshader, norShader;
     gshader.addShaderSourceCode(vtCode, GL_VERTEX_SHADER);
     gshader.addShaderSourceCode(frCode, GL_FRAGMENT_SHADER);
-    gshader.addShaderFile("../shaders/geometryshader.geom", GL_GEOMETRY_SHADER);
+    // gshader.addShaderFile("../shaders/geometryshader.geom", GL_GEOMETRY_SHADER);
     gshader.linkShaderProgram();
     loader.setShaderProgram(&gshader);
     loader.loadModel("../res/nanosuit_reflection/nanosuit.obj");
 
-    // GLuint vao = gshader.genVertexArray();
-    // gshader.setVertexAttribute(0, 2, points, sizeof(points));
-    // gshader.setVertexAttribute(1, 3, colors, sizeof(colors));
+    norShader.addShaderSourceCode(vtNor, GL_VERTEX_SHADER);
+    norShader.addShaderSourceCode(frNor, GL_FRAGMENT_SHADER);
+    norShader.addShaderSourceCode(geoNor, GL_GEOMETRY_SHADER);
+    norShader.linkShaderProgram();
+    norLoader.setShaderProgram(&norShader);
+    norLoader.loadModel("../res/nanosuit_reflection/nanosuit.obj");
 
     glm::mat4 model, view, projection;
     glEnable(GL_DEPTH_TEST);
@@ -158,13 +206,17 @@ int main(int argc, char **argv)
         projection = glm::perspective(glm::radians(ca.fovZoom()), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
         model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-
         
         gshader.setMat4("projection", &projection[0][0]);
         gshader.setMat4("view", &view[0][0]);
         gshader.setMat4("model", &model[0][0]);
-        gshader.setFloat("time", glfwGetTime());
         gshader.drawModels();
+
+        norShader.use();
+        norShader.setMat4("projection", &projection[0][0]);
+        norShader.setMat4("view", &view[0][0]);
+        norShader.setMat4("model", &model[0][0]);
+        norShader.drawModels();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
