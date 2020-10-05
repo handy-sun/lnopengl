@@ -159,11 +159,6 @@ int main(int argc, char **argv)
         ca.ProcessWindowEvent(glfwGetTime());
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        // view = ca.GetViewMatrix();
-        // projection = glm::perspective(glm::radians(ca.fovZoom()), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-        // model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        // model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-        
         quad.use();
         glBindVertexArray(vao);
         glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);
