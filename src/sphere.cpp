@@ -21,7 +21,7 @@
 const int screenWidth = 800;
 const int screenHeight = 600;
 
-FirstPersonCamera ca(0.0f, 0.0f, 4.0f);
+FirstPersonCamera ca(0.0f, 0.0f, 5.0f);
 
 using namespace std;
 
@@ -50,6 +50,8 @@ int main(int argc, char **argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
+    
     GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "SunEarth", NULL, NULL);
     if (window == NULL) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -99,6 +101,7 @@ int main(int argc, char **argv)
 
     glm::mat4 model, view, projection, modelEarth;
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
     glClearColor(0.08f, 0.08f, 0.08f, 1.0f);
 
     while (!glfwWindowShouldClose(window)) {
@@ -122,9 +125,10 @@ int main(int argc, char **argv)
         sphere.drawElementWithOneTex(sa.indiceCount(), 0);
 
         // earth
+        float beginXDegree = -165.f; // 场景一开始地球所处的位置
         modelEarth = glm::mat4(1.0f);
         modelEarth = glm::rotate(modelEarth, glm::radians(revolution), glm::vec3(0.0f, 1.0f, 0.0f)); // 平移之后再公转
-        modelEarth = glm::translate(modelEarth, glm::vec3(0.0f, 0.0f, -3.0f));
+        modelEarth = glm::translate(modelEarth, glm::vec3(3.0f * sin(glm::radians(beginXDegree)), 0.0f, 3.0f * cos(glm::radians(beginXDegree))));
         modelEarth = glm::rotate(modelEarth, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));// 先自转
         modelEarth = glm::rotate(modelEarth, glm::radians(23.43f), glm::vec3(0.0f, 0.0f, 1.0f)); // 黄赤交角。
         modelEarth = glm::rotate(modelEarth, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // 默认球坐标南北极是反的，转到正确位置
@@ -138,6 +142,9 @@ int main(int argc, char **argv)
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+#ifndef _MSC_VER
+        usleep(1000);  
+#endif   
     }
 
     glfwTerminate();

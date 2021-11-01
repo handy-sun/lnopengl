@@ -6,15 +6,15 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MODULE_PATH "{CMAKE_SOURCE_DIR}/cmake")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_DEBUG_POSTFIX "_d")
-set(PROJECT_NAME "GeometryShader")
+set(PROJECT_NAME "sphere")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_STANDARD 11)
-if(GCC)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--subsystem,windows")
-endif()
 
-#find_package(OpenGL REQUIRED)x
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--subsystem,windows")
+set(CMAKE_CXX_FLAGS "-mwindows")
+
+#find_package(OpenGL REQUIRED)
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     set(EXE_NAME "${PROJECT_NAME}_D")
 else()
@@ -26,12 +26,12 @@ endif()
 #endif(WIN32)
 
 include_directories(glad glfw/include/GLFW glm stb_image assimp)
-link_directories(assimp)
+link_directories(bin)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw)
+add_subdirectory(glfw)
 set(GLFW_LIBLIST glfw ${GLFW_LIBRARIES})
 
 set(COMMON_SRC
@@ -58,15 +58,18 @@ set(MAIN_LIST
     instancing
 )
 
-list(GET MAIN_LIST 7 SRC_FILE)
+list(GET MAIN_LIST 5 SRC_FILE)
 #add_definitions(-DGLEW_STATIC)
 
 add_executable(${PROJECT_NAME} "src/${SRC_FILE}.cpp" ${COMMON_SRC})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${EXE_NAME})
 
+# add_library(assimp STATIC IMPORTED)
+# set_property(TARGET assimp PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/bin/libassimp.dll.a)
+
 target_link_libraries(${PROJECT_NAME} ${GLFW_LIBLIST} 
-    assimp.dll
+    assimp
 )
 
 #ADD_CUSTOM_TARGET(debug ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Debug ${PROJECT_SOURCE_DIR})
