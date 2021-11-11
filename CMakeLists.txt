@@ -12,7 +12,9 @@ set(PROJECT_NAME "sphere")
 set(CMAKE_CXX_STANDARD 11)
 
 # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--subsystem,windows")
-set(CMAKE_CXX_FLAGS "-mwindows")
+if(WIN32)
+    set(CMAKE_CXX_FLAGS "-mwindows")
+endif()
 
 #find_package(OpenGL REQUIRED)
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -25,7 +27,7 @@ endif()
     #link_directories(GLFW)
 #endif(WIN32)
 
-include_directories(glad glfw/include/GLFW glm stb_image assimp)
+include_directories(glad glfw/include/GLFW glm stb_image)
 link_directories(bin)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -41,8 +43,6 @@ set(COMMON_SRC
     src/package/firstpersoncamera.hpp
     src/package/spherearray.hpp
     src/package/common.h
-    src/package/modelloader.h
-    src/package/modelloader.cpp
 )
 
 set(MAIN_LIST
@@ -69,7 +69,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${EXE_NAME})
 # set_property(TARGET assimp PROPERTY IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/bin/libassimp.dll.a)
 
 target_link_libraries(${PROJECT_NAME} ${GLFW_LIBLIST} 
-    assimp
+# assimp
 )
 
 #ADD_CUSTOM_TARGET(debug ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Debug ${PROJECT_SOURCE_DIR})
