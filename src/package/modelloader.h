@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include "assimp/material.h"
+#include <assimp/material.h>
 
 class aiNode;
 class aiMesh;

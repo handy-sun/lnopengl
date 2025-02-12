@@ -1,8 +1,9 @@
 ﻿#include <iostream>
 #include <cstdlib>
+
 #ifndef _MSC_VER
-#include <libgen.h>
-#include <unistd.h>
+#   include <libgen.h>
+#   include <unistd.h>
 #endif // _MSC_VER
 
 #include "glad.h"
@@ -27,18 +28,18 @@ using namespace std;
 
 void moveEarth(float delta, float *rotation, float *revolution, float *srotation)
 {
-	*rotation += 15.0 * delta;
-	*revolution += 3.0 * delta;
+    *rotation += 15.0 * delta;
+    *revolution += 3.0 * delta;
     *srotation += 1.0 * delta;
 
-	if (*rotation > 360.0)
-		*rotation -= 360;
+    if (*rotation > 360.0)
+        *rotation -= 360;
 
-	if (*revolution > 360.0)
-		*revolution -= 360;
+    if (*revolution > 360.0)
+        *revolution -= 360;
 
     if (*srotation > 360.0)
-		*srotation -= 360;
+        *srotation -= 360;
 }
 
 int main(int argc, char **argv)
@@ -50,8 +51,9 @@ int main(int argc, char **argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
     GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "SunEarth", NULL, NULL);
     if (window == NULL) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -79,7 +81,7 @@ int main(int argc, char **argv)
     SphereArray sa(30, 60);
     sphere.addShaderFile("../shaders/sphere.vert", "../shaders/sphere.frag");
     sphere.genVertexArray();
-        
+
     sphere.setVertexAttribute(0, 3, sa.vertices(), sa.verticeCount() * sizeof(float));
     // sphere.setVertexAttribute(1, 3, sa.vertices(), sa.verticeCount() * sizeof(float));
     sphere.setVertexAttribute(2, 2, sa.texCoords(), sa.texCoordCount() * sizeof(float));
@@ -121,7 +123,7 @@ int main(int argc, char **argv)
         sphere.setMat4("projection", &projection[0][0]);
         sphere.setMat4("view", &view[0][0]);
         sphere.setMat4("model", &model[0][0]);
-        
+
         sphere.drawElementWithOneTex(sa.indiceCount(), 0);
 
         // earth
@@ -138,13 +140,13 @@ int main(int argc, char **argv)
         sphere.setInt1("index", 1);
         sphere.setMat4("model", &modelEarth[0][0]);
 
-        sphere.drawElementWithOneTex(sa.indiceCount(), 1);  
+        sphere.drawElementWithOneTex(sa.indiceCount(), 1);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
 #ifndef _MSC_VER
-        usleep(1000);  
-#endif   
+        usleep(1000);
+#endif
     }
 
     glfwTerminate();

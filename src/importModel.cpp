@@ -39,6 +39,8 @@ int main(int argc, char **argv) // argv[1]:(char *) 模型加载路径 argv[2](i
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     GLFWwindow *window = glfwCreateWindow(screenWidth, screenHeight, "Model-nanosuit", NULL, NULL);
     if (window == NULL)
     {
@@ -106,7 +108,7 @@ int main(int argc, char **argv) // argv[1]:(char *) 模型加载路径 argv[2](i
 
     if (argc >= 3 && 0 == strcmp(argv[2], "1"))
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    
+
     while (!glfwWindowShouldClose(window))
     {
         ca.ProcessWindowEvent(glfwGetTime());
@@ -153,7 +155,7 @@ int main(int argc, char **argv) // argv[1]:(char *) 模型加载路径 argv[2](i
         nano.setFloat("spotLight.quadratic", 0.032f);
         nano.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
         nano.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-  
+
         nano.drawModels();
 
         for (int i = 0; i < sizeof(pointLightPositions) / sizeof(glm::vec3); i++) {

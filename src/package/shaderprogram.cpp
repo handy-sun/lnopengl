@@ -5,9 +5,9 @@
 #include <iostream>
 
 #ifdef GLMANAGER_USE_GLEW
-#include "glew/glew.h"
+#   include "glew/glew.h"
 #else
-#include "glad/glad.h"
+#   include "glad/glad.h"
 #endif
 
 #include "common.h"

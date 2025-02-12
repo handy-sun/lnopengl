@@ -1,0 +1,3 @@
+[submodule "third/assimp"]
+	path = third/assimp
+	url = git@github.com:assimp/assimp.git
