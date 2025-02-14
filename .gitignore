@@ -72,5 +72,8 @@ target_wrapper.*
 # QtCreator CMake
 CMakeLists.txt.user*
 
+# MacOS
+.DS_Store
+
 # single file
 glBufferSubData.txt
