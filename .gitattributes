@@ -1,0 +1,6 @@
+glad/ linguist-detectable=false
+glew/ linguist-detectable=false
+glfw/ linguist-detectable=false
+glm/ linguist-detectable=false
+stb_image/ linguist-detectable=false
+third/ linguist-detectable=false
